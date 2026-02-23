@@ -5,7 +5,7 @@ class konekDB:
         pass
 
     def querryResult(self, strsql):
-        cnx = mysql.connector.connect(user='root', password='', host='127.0.0.1', database='warung')
+        cnx = mysql.connector.connect(user='andriefendy', password='Andri2608.', host='127.0.0.1', database='warungme')
         conn = cnx.cursor()
         conn.execute(strsql)
         result = conn.fetchall()
@@ -14,7 +14,7 @@ class konekDB:
 
 
     def querryExecute(self, strsql):
-        cnx = mysql.connector.connect(user='root', password='', host='127.0.0.1', database='warung')
+        cnx = mysql.connector.connect(user='andriefendy', password='Andri2608.', host='127.0.0.1', database='warungme')
         conn = cnx.cursor()
         conn.execute(strsql)
         cnx.commit()

@@ -1,26 +1,40 @@
-from PyQt5.QtWidgets import QMainWindow,QApplication,QDialog,QWidget,QPushButton,QLineEdit,QLabel,QComboBox,QTableWidget,QMessageBox,QAction
+from PyQt5.QtWidgets import QMainWindow,QApplication,QDialog,QWidget,QPushButton,QLineEdit,QLabel,QComboBox,QTableWidget,QMessageBox,QAction, QHeaderView, QDesktopWidget
 from PyQt5 import QtWidgets, uic, QtCore, QtPrintSupport,QtGui
 from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
 from PyQt5.QtGui import QPainter, QFont
 import sys
 import mysql.connector
 
+# helper for db
+
+def get_connection():
+    return mysql.connector.connect(user='andriefendy', password='Andri2608.', host='127.0.0.1', database='warungme')
+
 class lognin(QDialog):
     def __init__(self):
-        QtWidgets.QMainWindow.__init__(self)
-        uic.loadUi("login.ui", self)
+        super().__init__()
+        # note: original UI file uses capital 'L'
+        uic.loadUi("Login.ui", self)
+        self.center()
         self.masuk.clicked.connect(self.loginfungsion)
+
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
     
     def loginfungsion(self):
         username = self.emailfield.text()
         password = self.passwordfield.text()
-        conn = mysql.connector.connect(user='root', password='', host='127.0.0.1', database='warungme')    
+        conn = get_connection()
         curr = conn.cursor()
-        sql = "SELECT * FROM auth where username = '" + username + "' and pass = '" + password + "'"
-        curr.execute(sql)
+        curr.execute("SELECT * FROM auth WHERE username=%s AND pass=%s", (username, password))
         user = curr.fetchone()
+        curr.close()
+        conn.close()
         if user is not None:
-            self.masukkasir()	
+            self.masukkasir()
         else:
             self.error.setText("masukkan akun yang benar")
     
@@ -32,8 +46,9 @@ class lognin(QDialog):
                         
 class kasir(QDialog):
     def __init__(self):
-        QtWidgets.QMainWindow.__init__(self)
+        super().__init__()
         uic.loadUi("CheckOut.ui", self)
+        self.center()
         self.table_1.clicked.connect(self.getitem)
         self.simpan.clicked.connect(self.simpandat)
         self.bayar.clicked.connect(self.bayarr)
@@ -43,13 +58,22 @@ class kasir(QDialog):
         self.activeText(False)
         self.tableWidgt()
         self.loaddata()
-        pass
+
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
     def tableWidgt(self):
+        header = self.table_1.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.Stretch)
         self.table_1.setColumnWidth(0,100)
         self.table_1.setColumnWidth(1,250)
         self.table_1.setColumnWidth(2,180)
 
+        header2 = self.table_2.horizontalHeader()
+        header2.setSectionResizeMode(QHeaderView.Stretch)
         self.table_2.setColumnWidth(0,100)
         self.table_2.setColumnWidth(1,200)
         self.table_2.setColumnWidth(2,150)
@@ -83,7 +107,7 @@ class kasir(QDialog):
         self.clearform2()
 
     def bayarr(self):
-        conn = mysql.connector.connect(user='root', password='', host='127.0.0.1', database='warungme')    
+        conn = get_connection()
         curr = conn.cursor()
         namapembeli = self.pemesan.text()
         jumlah = str(self.jumlah2.text())
@@ -93,14 +117,17 @@ class kasir(QDialog):
         if payment >= total:
             change = payment - total
             self.kembalian.setText(str(change))
-            query = f"INSERT INTO laporan (nama, jumlah, total) VALUES ('{namapembeli}', '{jumlah}', '{totalbayar}')"
-            curr.execute(query)
+            curr.execute("INSERT INTO laporan (nama, jumlah, total) VALUES (%s, %s, %s)",
+                         (namapembeli, jumlah, totalbayar))
             conn.commit()
+            curr.close()
+            conn.close()
             QMessageBox.information(self, "info", "Pembayaran Berhasil")
             self.cetak_struk()
-            
         else:
             self.kembalian.setText("Uang Kurang")
+            curr.close()
+            conn.close()
         
     def simpandat(self):
         row = self.table_2.rowCount()
@@ -311,19 +338,17 @@ class kasir(QDialog):
         self.clearform2()        
         
     def loaddata(self):
-        conn = mysql.connector.connect(user='root', password='', host='127.0.0.1', database='warungme')	
+        conn = get_connection()
         curr = conn.cursor()
-        querry = "SELECT * FROM tbbarang"
-        curr.execute(querry)
+        curr.execute("SELECT * FROM tbbarang")
         result = curr.fetchall()
-        print(result)
-        row = 0
+        curr.close()
+        conn.close()
         self.table_1.setRowCount(len(result))
-        for item in result:
+        for row, item in enumerate(result):
             self.table_1.setItem(row,0,QtWidgets.QTableWidgetItem(item[1]))
             self.table_1.setItem(row,1,QtWidgets.QTableWidgetItem(item[2]))
             self.table_1.setItem(row,2,QtWidgets.QTableWidgetItem(str(item[3])))
-            row += 1
     
     def keluars(self):
         self.logout = lognin()
