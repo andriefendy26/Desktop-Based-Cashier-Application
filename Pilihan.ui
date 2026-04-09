@@ -6,78 +6,190 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>473</width>
-    <height>565</height>
+    <width>480</width>
+    <height>580</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Dashboard — Kasir</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">
+QDialog {
+    background-color: #0f1117;
+}
+
+QWidget#widget {
+    background-color: #0f1117;
+}
+
+/* ── Card ── */
+QFrame#card {
+    background-color: #161b27;
+    border: 1px solid #1e2d3d;
+    border-radius: 20px;
+}
+
+/* ── Title ── */
+QLabel#label_title {
+    color: #f1f5f9;
+    font-family: "Segoe UI";
+    font-size: 22px;
+    font-weight: 700;
+    background: transparent;
+}
+
+QLabel#label_sub {
+    color: #475569;
+    font-family: "Segoe UI";
+    font-size: 12px;
+    background: transparent;
+}
+
+QLabel#label_icon {
+    background: transparent;
+    font-size: 38px;
+}
+
+/* ── Divider ── */
+QFrame#divider {
+    background-color: #1e2d3d;
+    border: none;
+    max-height: 1px;
+}
+
+/* ── Menu Buttons ── */
+QPushButton#Menu {
+    background-color: #1e2a3a;
+    color: #e2e8f0;
+    border: 1.5px solid #2d3f55;
+    border-radius: 14px;
+    font-family: "Segoe UI";
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0px 20px;
+    text-align: left;
+}
+QPushButton#Menu:hover {
+    background-color: #1a3a5c;
+    border-color: #38bdf8;
+    color: #38bdf8;
+}
+QPushButton#Menu:pressed {
+    background-color: #0c2a47;
+}
+
+QPushButton#Lprn {
+    background-color: #1e2a3a;
+    color: #e2e8f0;
+    border: 1.5px solid #2d3f55;
+    border-radius: 14px;
+    font-family: "Segoe UI";
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0px 20px;
+    text-align: left;
+}
+QPushButton#Lprn:hover {
+    background-color: #1a3a2a;
+    border-color: #34d399;
+    color: #34d399;
+}
+QPushButton#Lprn:pressed {
+    background-color: #0c2a1e;
+}
+
+/* ── Logout ── */
+QPushButton#logout {
+    background-color: transparent;
+    color: #64748b;
+    border: 1.5px solid #1e2d3d;
+    border-radius: 14px;
+    font-family: "Segoe UI";
+    font-size: 13px;
+    font-weight: 600;
+}
+QPushButton#logout:hover {
+    background-color: #2d1a1a;
+    border-color: #ef4444;
+    color: #ef4444;
+}
+QPushButton#logout:pressed {
+    background-color: #1a0f0f;
+}
+   </string>
+  </property>
+
   <widget class="QWidget" name="widget" native="true">
    <property name="geometry">
-    <rect>
-     <x>-10</x>
-     <y>-10</y>
-     <width>531</width>
-     <height>631</height>
-    </rect>
+    <rect><x>0</x><y>0</y><width>480</width><height>580</height></rect>
    </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(255, 255, 255);</string>
-   </property>
-   <widget class="QPushButton" name="Menu">
+
+   <!-- ── Card ── -->
+   <widget class="QFrame" name="card">
     <property name="geometry">
-     <rect>
-      <x>160</x>
-      <y>180</y>
-      <width>171</width>
-      <height>51</height>
-     </rect>
+     <rect><x>28</x><y>28</y><width>424</width><height>524</height></rect>
     </property>
-    <property name="styleSheet">
-     <string notr="true">border-radius:20px;
-background-color: rgb(170, 255, 255);
-font: 14pt &quot;MS Shell Dlg 2&quot;;</string>
-    </property>
-    <property name="text">
-     <string>Daftar Menu</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="Lprn">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>250</y>
-      <width>261</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">border-radius:20px;
-background-color: rgb(170, 255, 255);
-font: 14pt &quot;MS Shell Dlg 2&quot;;</string>
-    </property>
-    <property name="text">
-     <string>Laporan Pendapatan</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="logout">
-    <property name="geometry">
-     <rect>
-      <x>180</x>
-      <y>320</y>
-      <width>141</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">border-radius:20px;
-background-color: rgb(255, 0, 4);
-font: 14pt &quot;MS Shell Dlg 2&quot;;</string>
-    </property>
-    <property name="text">
-     <string>Log Out</string>
-    </property>
+    <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+    <property name="frameShadow"><enum>QFrame::Raised</enum></property>
+
+    <!-- Icon -->
+    <widget class="QLabel" name="label_icon">
+     <property name="geometry"><rect><x>172</x><y>32</y><width>80</width><height>60</height></rect></property>
+     <property name="text"><string>🏪</string></property>
+     <property name="alignment"><set>Qt::AlignCenter</set></property>
+    </widget>
+
+    <!-- Title -->
+    <widget class="QLabel" name="label_title">
+     <property name="geometry"><rect><x>20</x><y>98</y><width>384</width><height>34</height></rect></property>
+     <property name="text"><string>Panel Utama</string></property>
+     <property name="alignment"><set>Qt::AlignCenter</set></property>
+    </widget>
+
+    <!-- Subtitle -->
+    <widget class="QLabel" name="label_sub">
+     <property name="geometry"><rect><x>20</x><y>132</y><width>384</width><height>22</height></rect></property>
+     <property name="text"><string>Pilih menu untuk melanjutkan</string></property>
+     <property name="alignment"><set>Qt::AlignCenter</set></property>
+    </widget>
+
+    <!-- Divider -->
+    <widget class="QFrame" name="divider">
+     <property name="geometry"><rect><x>24</x><y>170</y><width>376</width><height>2</height></rect></property>
+     <property name="frameShape"><enum>QFrame::HLine</enum></property>
+     <property name="frameShadow"><enum>QFrame::Plain</enum></property>
+    </widget>
+
+    <!-- Button: Daftar Menu -->
+    <widget class="QPushButton" name="Menu">
+     <property name="geometry"><rect><x>24</x><y>196</y><width>376</width><height>80</height></rect></property>
+     <property name="text"><string>  🍽️   Daftar Menu</string></property>
+     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+    </widget>
+
+    <!-- Button: Laporan Pendapatan -->
+    <widget class="QPushButton" name="Lprn">
+     <property name="geometry"><rect><x>24</x><y>296</y><width>376</width><height>80</height></rect></property>
+     <property name="text"><string>  📊   Laporan Pendapatan</string></property>
+     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+    </widget>
+
+    <!-- Divider 2 -->
+    <widget class="QFrame" name="divider2">
+     <property name="geometry"><rect><x>24</x><y>394</y><width>376</width><height>2</height></rect></property>
+     <property name="frameShape"><enum>QFrame::HLine</enum></property>
+     <property name="frameShadow"><enum>QFrame::Plain</enum></property>
+     <property name="styleSheet"><string notr="true">background-color: #1e2d3d; border: none; max-height: 1px;</string></property>
+    </widget>
+
+    <!-- Button: Logout -->
+    <widget class="QPushButton" name="logout">
+     <property name="geometry"><rect><x>24</x><y>412</y><width>376</width><height>52</height></rect></property>
+     <property name="text"><string>✕   Log Out</string></property>
+     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+    </widget>
+
    </widget>
   </widget>
  </widget>

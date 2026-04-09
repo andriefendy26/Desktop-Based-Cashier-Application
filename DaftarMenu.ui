@@ -6,303 +6,284 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>937</width>
-    <height>656</height>
+    <width>980</width>
+    <height>660</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Daftar Menu — Kasir</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">
+/* ── Global ── */
+QDialog, QWidget#widget {
+    background-color: #0f1117;
+    color: #e2e8f0;
+    font-family: "Segoe UI";
+    font-size: 13px;
+}
+
+/* ── Left Panel ── */
+QFrame#panel_left {
+    background-color: #161b27;
+    border: 1px solid #1e2d3d;
+    border-radius: 16px;
+}
+
+/* ── Section Title ── */
+QLabel#label_title {
+    color: #f1f5f9;
+    font-size: 18px;
+    font-weight: 700;
+    background: transparent;
+}
+
+/* ── Field Labels ── */
+QLabel {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    background: transparent;
+}
+
+/* ── Inputs ── */
+QLineEdit {
+    background-color: #1e2538;
+    border: 1.5px solid #2d3548;
+    border-radius: 10px;
+    padding: 9px 13px;
+    color: #f1f5f9;
+    font-size: 13px;
+}
+QLineEdit:focus {
+    border-color: #38bdf8;
+    background-color: #1a2a3a;
+}
+
+/* ── ComboBox ── */
+QComboBox {
+    background-color: #1e2538;
+    border: 1.5px solid #2d3548;
+    border-radius: 10px;
+    padding: 9px 13px;
+    color: #f1f5f9;
+    font-size: 13px;
+}
+QComboBox:focus { border-color: #38bdf8; }
+QComboBox::drop-down {
+    border: none;
+    width: 24px;
+}
+QComboBox::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #64748b;
+    margin-right: 8px;
+}
+QComboBox QAbstractItemView {
+    background-color: #1e2538;
+    border: 1px solid #2d3548;
+    border-radius: 8px;
+    color: #f1f5f9;
+    selection-background-color: #1e3a5f;
+    outline: none;
+}
+
+/* ── Table ── */
+QTableWidget {
+    background-color: #161b27;
+    border: 1px solid #1e2d3d;
+    border-radius: 12px;
+    gridline-color: #1e2538;
+    color: #e2e8f0;
+    font-size: 13px;
+    selection-background-color: #1e3a5f;
+    selection-color: #e0f2fe;
+    outline: none;
+}
+QHeaderView::section {
+    background-color: #0f1117;
+    color: #38bdf8;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 10px 14px;
+    border: none;
+    border-bottom: 2px solid #38bdf8;
+}
+QTableWidget::item {
+    padding: 9px 14px;
+    border-bottom: 1px solid #1e2538;
+}
+QTableWidget::item:selected {
+    background-color: #1e3a5f;
+    color: #e0f2fe;
+}
+QTableWidget::item:hover { background-color: #1a2640; }
+
+QScrollBar:vertical {
+    background: #0f1117; width: 7px; border-radius: 4px;
+}
+QScrollBar::handle:vertical {
+    background: #2d3f55; border-radius: 4px; min-height: 30px;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+
+/* ── Buttons ── */
+QPushButton {
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    padding: 9px 18px;
+}
+
+QPushButton#simpan {
+    background-color: #1d4ed8;
+    color: #e0f2fe;
+}
+QPushButton#simpan:hover { background-color: #2563eb; }
+QPushButton#simpan:pressed { background-color: #1e40af; }
+
+QPushButton#edit {
+    background-color: #1e2538;
+    color: #94a3b8;
+    border: 1.5px solid #2d3548;
+}
+QPushButton#edit:hover { border-color: #f59e0b; color: #f59e0b; background-color: #2a2010; }
+
+QPushButton#hapus {
+    background-color: #2d1a1a;
+    color: #fca5a5;
+    border: 1.5px solid #7f1d1d;
+}
+QPushButton#hapus:hover { background-color: #7f1d1d; color: #fff; }
+
+QPushButton#batal {
+    background-color: #1e2538;
+    color: #94a3b8;
+    border: 1.5px solid #2d3548;
+}
+QPushButton#batal:hover { border-color: #64748b; color: #e2e8f0; }
+
+QPushButton#keluar {
+    background-color: transparent;
+    color: #64748b;
+    border: 1.5px solid #1e2d3d;
+}
+QPushButton#keluar:hover { border-color: #ef4444; color: #ef4444; background-color: #2d1a1a; }
+   </string>
+  </property>
+
   <widget class="QWidget" name="widget" native="true">
    <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>941</width>
-     <height>661</height>
-    </rect>
+    <rect><x>0</x><y>0</y><width>980</width><height>660</height></rect>
    </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(144, 144, 144);
-background-color: rgb(255, 255, 255);</string>
-   </property>
-   <widget class="QLabel" name="label_2">
+
+   <!-- ════ LEFT PANEL ════ -->
+   <widget class="QFrame" name="panel_left">
     <property name="geometry">
-     <rect>
-      <x>50</x>
-      <y>60</y>
-      <width>171</width>
-      <height>51</height>
-     </rect>
+     <rect><x>18</x><y>18</y><width>280</width><height>624</height></rect>
     </property>
-    <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Daftar Menu&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
+    <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+    <property name="frameShadow"><enum>QFrame::Raised</enum></property>
+
+    <!-- Title -->
+    <widget class="QLabel" name="label_title">
+     <property name="geometry"><rect><x>20</x><y>20</y><width>240</width><height>34</height></rect></property>
+     <property name="text"><string>📋  Daftar Menu</string></property>
+    </widget>
+
+    <!-- ID Menu -->
+    <widget class="QLabel" name="label_5">
+     <property name="geometry"><rect><x>20</x><y>74</y><width>200</width><height>18</height></rect></property>
+     <property name="text"><string>ID MENU</string></property>
+    </widget>
+    <widget class="QLineEdit" name="textIdMenu">
+     <property name="geometry"><rect><x>20</x><y>94</y><width>240</width><height>38</height></rect></property>
+     <property name="placeholderText"><string>Auto generate...</string></property>
+    </widget>
+
+    <!-- Kategori -->
+    <widget class="QLabel" name="label_6">
+     <property name="geometry"><rect><x>20</x><y>148</y><width>200</width><height>18</height></rect></property>
+     <property name="text"><string>KATEGORI</string></property>
+    </widget>
+    <widget class="QComboBox" name="cbKategori">
+     <property name="geometry"><rect><x>20</x><y>168</y><width>240</width><height>38</height></rect></property>
+     <property name="editable"><bool>true</bool></property>
+     <property name="currentText"><string>Makanan</string></property>
+     <item><property name="text"><string>Makanan</string></property></item>
+     <item><property name="text"><string>Minuman</string></property></item>
+    </widget>
+
+    <!-- Nama Menu -->
+    <widget class="QLabel" name="label_7">
+     <property name="geometry"><rect><x>20</x><y>222</y><width>200</width><height>18</height></rect></property>
+     <property name="text"><string>NAMA MENU</string></property>
+    </widget>
+    <widget class="QLineEdit" name="textMenu">
+     <property name="geometry"><rect><x>20</x><y>242</y><width>240</width><height>38</height></rect></property>
+     <property name="placeholderText"><string>Nama menu...</string></property>
+    </widget>
+
+    <!-- Harga -->
+    <widget class="QLabel" name="label_8">
+     <property name="geometry"><rect><x>20</x><y>296</y><width>200</width><height>18</height></rect></property>
+     <property name="text"><string>HARGA</string></property>
+    </widget>
+    <widget class="QLineEdit" name="textHarga">
+     <property name="geometry"><rect><x>20</x><y>316</y><width>240</width><height>38</height></rect></property>
+     <property name="placeholderText"><string>Rp 0</string></property>
+    </widget>
+
+    <!-- Buttons: Baru + Edit -->
+    <widget class="QPushButton" name="simpan">
+     <property name="geometry"><rect><x>20</x><y>516</y><width>115</width><height>38</height></rect></property>
+     <property name="text"><string>＋  Baru</string></property>
+     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+    </widget>
+    <widget class="QPushButton" name="edit">
+     <property name="geometry"><rect><x>145</x><y>516</y><width>115</width><height>38</height></rect></property>
+     <property name="text"><string>✏  Edit</string></property>
+     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+    </widget>
+
+    <!-- Buttons: Hapus + Batal -->
+    <widget class="QPushButton" name="hapus">
+     <property name="geometry"><rect><x>20</x><y>566</y><width>115</width><height>38</height></rect></property>
+     <property name="text"><string>🗑  Hapus</string></property>
+     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+    </widget>
+    <widget class="QPushButton" name="batal">
+     <property name="geometry"><rect><x>145</x><y>566</y><width>115</width><height>38</height></rect></property>
+     <property name="text"><string>↩  Batal</string></property>
+     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+    </widget>
    </widget>
-   <widget class="QLabel" name="label_5">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>140</y>
-      <width>55</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>ID Menu :</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="textIdMenu">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>160</y>
-      <width>191</width>
-      <height>22</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_6">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>210</y>
-      <width>55</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Kategori :</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="cbKategori">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>230</y>
-      <width>191</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-    <property name="whatsThis">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Kategori&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-    <property name="editable">
-     <bool>true</bool>
-    </property>
-    <property name="currentText">
-     <string>Makanan</string>
-    </property>
-    <property name="maxCount">
-     <number>2147483642</number>
-    </property>
-    <item>
-     <property name="text">
-      <string>Makanan</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>Minuman</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QLabel" name="label_7">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>290</y>
-      <width>55</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Menu :</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="textMenu">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>310</y>
-      <width>191</width>
-      <height>22</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_8">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>360</y>
-      <width>55</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Harga :</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="textHarga">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>390</y>
-      <width>191</width>
-      <height>22</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="simpan">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>590</y>
-      <width>93</width>
-      <height>28</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(144, 144, 144);</string>
-    </property>
-    <property name="text">
-     <string>baru</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="hapus">
-    <property name="geometry">
-     <rect>
-      <x>280</x>
-      <y>590</y>
-      <width>93</width>
-      <height>28</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
-    </property>
-    <property name="text">
-     <string>Hapus</string>
-    </property>
-   </widget>
+
+   <!-- ════ RIGHT: TABLE ════ -->
    <widget class="QTableWidget" name="tableWidget">
     <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>70</y>
-      <width>601</width>
-      <height>471</height>
-     </rect>
+     <rect><x>316</x><y>18</y><width>646</width><height>566</height></rect>
     </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
-    </property>
-    <row>
-     <property name="text">
-      <string/>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string/>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string/>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string/>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string/>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string/>
-     </property>
-    </row>
-    <column>
-     <property name="text">
-      <string>No</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Kategori</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Nama Menu</string>
-     </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Harga</string>
-     </property>
-    </column>
-    <item row="3" column="3">
-     <property name="font">
-      <font>
-       <kerning>true</kerning>
-      </font>
-     </property>
-     <property name="flags">
-      <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsDropEnabled|ItemIsUserCheckable</set>
-     </property>
-    </item>
+    <column><property name="text"><string>No</string></property></column>
+    <column><property name="text"><string>Kategori</string></property></column>
+    <column><property name="text"><string>Nama Menu</string></property></column>
+    <column><property name="text"><string>Harga</string></property></column>
    </widget>
-   <widget class="QPushButton" name="edit">
-    <property name="geometry">
-     <rect>
-      <x>160</x>
-      <y>590</y>
-      <width>93</width>
-      <height>28</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>edit tabel</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="batal">
-    <property name="geometry">
-     <rect>
-      <x>400</x>
-      <y>590</y>
-      <width>93</width>
-      <height>28</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Batal</string>
-    </property>
-   </widget>
+
+   <!-- Keluar button (bottom right) -->
    <widget class="QPushButton" name="keluar">
     <property name="geometry">
-     <rect>
-      <x>520</x>
-      <y>590</y>
-      <width>93</width>
-      <height>28</height>
-     </rect>
+     <rect><x>843</x><y>602</y><width>119</width><height>38</height></rect>
     </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 0, 0);</string>
-    </property>
-    <property name="text">
-     <string>kembali</string>
-    </property>
+    <property name="text"><string>✕  Kembali</string></property>
+    <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
    </widget>
+
   </widget>
  </widget>
  <resources/>

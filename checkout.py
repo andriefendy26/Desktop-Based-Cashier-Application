@@ -1,19 +1,25 @@
-from PyQt5.QtWidgets import QMainWindow,QApplication,QDialog,QWidget,QPushButton,QLineEdit,QLabel,QComboBox,QTableWidget,QMessageBox,QAction, QHeaderView, QDesktopWidget
-from PyQt5 import QtWidgets, uic, QtCore, QtPrintSupport,QtGui
+from PyQt5.QtWidgets import (QApplication, QDialog, QWidget, QPushButton,
+                             QLineEdit, QLabel, QTableWidget, QMessageBox,
+                             QHeaderView, QDesktopWidget)
+from PyQt5 import QtWidgets, uic, QtGui, QtPrintSupport
 from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
-from PyQt5.QtGui import QPainter, QFont
+from PyQt5.QtGui import QPainter
 import sys
 import mysql.connector
 
-# helper for db
 
 def get_connection():
-    return mysql.connector.connect(user='andriefendy', password='Andri2608.', host='127.0.0.1', database='warungme')
+    return mysql.connector.connect(
+        user='andriefendy',
+        password='Andri2608.',
+        host='127.0.0.1',
+        database='warungme'
+    )
+
 
 class lognin(QDialog):
     def __init__(self):
         super().__init__()
-        # note: original UI file uses capital 'L'
         uic.loadUi("Login.ui", self)
         self.center()
         self.masuk.clicked.connect(self.loginfungsion)
@@ -23,7 +29,7 @@ class lognin(QDialog):
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
-    
+
     def loginfungsion(self):
         username = self.emailfield.text()
         password = self.passwordfield.text()
@@ -36,25 +42,29 @@ class lognin(QDialog):
         if user is not None:
             self.masukkasir()
         else:
-            self.error.setText("masukkan akun yang benar")
-    
+            self.error.setText("Masukkan akun yang benar!")
+
     def masukkasir(self):
         self.openkasir = kasir()
         self.openkasir.show()
         self.close()
-        
-                        
+
+
 class kasir(QDialog):
     def __init__(self):
         super().__init__()
         uic.loadUi("CheckOut.ui", self)
         self.center()
+        self.setWindowTitle("Check Out — Kasir")
+
+        # Koneksi sinyal
         self.table_1.clicked.connect(self.getitem)
         self.simpan.clicked.connect(self.simpandat)
         self.bayar.clicked.connect(self.bayarr)
         self.keluar.clicked.connect(self.keluars)
         self.hapus.clicked.connect(self.hapuss)
         self.batal.clicked.connect(self.batals)
+
         self.activeText(False)
         self.tableWidgt()
         self.loaddata()
@@ -66,92 +76,123 @@ class kasir(QDialog):
         self.move(qr.topLeft())
 
     def tableWidgt(self):
-        header = self.table_1.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.Stretch)
-        self.table_1.setColumnWidth(0,100)
-        self.table_1.setColumnWidth(1,250)
-        self.table_1.setColumnWidth(2,180)
+        # Table Daftar Menu
+        h1 = self.table_1.horizontalHeader()
+        h1.setSectionResizeMode(QHeaderView.Stretch)
+        self.table_1.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table_1.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table_1.verticalHeader().setVisible(False)
+        self.table_1.setAlternatingRowColors(True)
+        self.table_1.setStyleSheet(
+            self.table_1.styleSheet() +
+            "QTableWidget { alternate-background-color: #1e2538; }"
+        )
 
-        header2 = self.table_2.horizontalHeader()
-        header2.setSectionResizeMode(QHeaderView.Stretch)
-        self.table_2.setColumnWidth(0,100)
-        self.table_2.setColumnWidth(1,200)
-        self.table_2.setColumnWidth(2,150)
-        self.table_2.setColumnWidth(3,50)
+        # Table Keranjang
+        h2 = self.table_2.horizontalHeader()
+        h2.setSectionResizeMode(QHeaderView.Stretch)
+        self.table_2.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table_2.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table_2.verticalHeader().setVisible(False)
+        self.table_2.setAlternatingRowColors(True)
+        self.table_2.setStyleSheet(
+            self.table_2.styleSheet() +
+            "QTableWidget { alternate-background-color: #1e2538; }"
+        )
 
+    def activeText(self, enabled):
+        self.kategori.setEnabled(enabled)
+        self.pilihanmenu.setEnabled(enabled)
+        self.harga.setEnabled(enabled)
+        self.totalbayar.setEnabled(enabled)
+        self.kembalian.setEnabled(enabled)
+        self.jumlah2.setEnabled(enabled)
 
-    def activeText(self,bool):
-        self.kategori.setEnabled(bool)
-        self.pilihanmenu.setEnabled(bool)
-        self.harga.setEnabled(bool)
-        self.totalbayar.setEnabled(bool)
-        self.kembalian.setEnabled(bool)
-        self.jumlah2.setEnabled(bool)
-    
     def clearform(self):
-        self.kategori.setText('')
-        self.pilihanmenu.setText('')
-        self.harga.setText('')
+        self.kategori.clear()
+        self.pilihanmenu.clear()
+        self.harga.clear()
         self.jumlah.setText('0')
-    
+
     def clearform2(self):
-        self.totalbayar.setText('')
-        self.uangpembayaran.setText('')
+        self.totalbayar.clear()
+        self.uangpembayaran.clear()
         self.table_2.clearContents()
         self.table_2.setRowCount(0)
-        self.kembalian.setText('')
-        self.pemesan.setText('')
-        self.jumlah2.setText('')
-        
-    def clear(self):
-        self.clearform2()
+        self.kembalian.clear()
+        self.pemesan.clear()
+        self.jumlah2.clear()
 
     def bayarr(self):
-        conn = get_connection()
-        curr = conn.cursor()
-        namapembeli = self.pemesan.text()
-        jumlah = str(self.jumlah2.text())
-        totalbayar = str(self.totalbayar.text())
-        total = float(self.totalbayar.text())
-        payment = float(self.uangpembayaran.text())
+        namapembeli = self.pemesan.text().strip()
+        uang_text = self.uangpembayaran.text().strip()
+        total_text = self.totalbayar.text().strip()
+
+        if not namapembeli:
+            QMessageBox.warning(self, "Perhatian", "Nama pemesan belum diisi!")
+            return
+        if not uang_text or not total_text:
+            QMessageBox.warning(self, "Perhatian", "Total bayar atau uang pembayaran kosong!")
+            return
+
+        try:
+            total = float(total_text)
+            payment = float(uang_text)
+        except ValueError:
+            QMessageBox.warning(self, "Error", "Format angka tidak valid!")
+            return
+
         if payment >= total:
             change = payment - total
-            self.kembalian.setText(str(change))
-            curr.execute("INSERT INTO laporan (nama, jumlah, total) VALUES (%s, %s, %s)",
-                         (namapembeli, jumlah, totalbayar))
+            self.kembalian.setText(f"{change:.0f}")
+            conn = get_connection()
+            curr = conn.cursor()
+            curr.execute(
+                "INSERT INTO laporan (nama, jumlah, total) VALUES (%s, %s, %s)",
+                (namapembeli, self.jumlah2.text(), total_text)
+            )
             conn.commit()
             curr.close()
             conn.close()
-            QMessageBox.information(self, "info", "Pembayaran Berhasil")
+            QMessageBox.information(self, "Sukses", "✅ Pembayaran Berhasil!")
             self.cetak_struk()
         else:
+            kekurangan = total - payment
             self.kembalian.setText("Uang Kurang")
-            curr.close()
-            conn.close()
-        
+            QMessageBox.warning(self, "Pembayaran Gagal",
+                                f"Uang kurang Rp {kekurangan:,.0f}")
+
     def simpandat(self):
-        row = self.table_2.rowCount()
-        self.table_2.insertRow(row)
         kategori = self.kategori.text()
         menu = self.pilihanmenu.text()
         harga = self.harga.text()
         jumlah = self.jumlah.text()
 
-        if jumlah:
-            self.table_2.setItem(row, 0, QtWidgets.QTableWidgetItem(kategori))
-            self.table_2.setItem(row, 1, QtWidgets.QTableWidgetItem(menu))
-            self.table_2.setItem(row, 2, QtWidgets.QTableWidgetItem(str(harga)))
-            self.table_2.setItem(row, 3, QtWidgets.QTableWidgetItem(str(jumlah)))
+        if not jumlah or not menu:
+            QMessageBox.warning(self, "Perhatian", "Pilih menu dan isi jumlah terlebih dahulu!")
+            return
 
-            value = float(jumlah)
-            hitung = value * float(harga)
-            self.table_2.setItem(row, 4, QtWidgets.QTableWidgetItem(str(hitung)))
+        try:
+            nilai_jumlah = float(jumlah)
+            nilai_harga = float(harga)
+        except ValueError:
+            QMessageBox.warning(self, "Error", "Jumlah atau harga tidak valid!")
+            return
 
-            self.jum()
-            self.tot()
-            self.clearform()
-                    
-                    
+        row = self.table_2.rowCount()
+        self.table_2.insertRow(row)
+        hitung = nilai_jumlah * nilai_harga
+
+        self.table_2.setItem(row, 0, QtWidgets.QTableWidgetItem(kategori))
+        self.table_2.setItem(row, 1, QtWidgets.QTableWidgetItem(menu))
+        self.table_2.setItem(row, 2, QtWidgets.QTableWidgetItem(f"{nilai_harga:.0f}"))
+        self.table_2.setItem(row, 3, QtWidgets.QTableWidgetItem(f"{nilai_jumlah:.0f}"))
+        self.table_2.setItem(row, 4, QtWidgets.QTableWidgetItem(f"{hitung:.0f}"))
+
+        self.jum()
+        self.tot()
+        self.clearform()
+
     def cetak_struk(self):
         printer = QPrinter(QPrinter.HighResolution)
         printer.setPageSize(QtPrintSupport.QPrinter.A6)
@@ -159,159 +200,101 @@ class kasir(QDialog):
         if dialog.exec_() == QPrintDialog.Accepted:
             painter = QPainter(printer)
             painter.setRenderHint(QPainter.Antialiasing)
-            
-            # Membuat konten struk
+
             margin = 70
             x = margin
             y = margin
-            line_height = 150
-                    
-            painter.setFont(QtGui.QFont("Arial", 12))
-            judul_text = "Restorant Cepat Saji"
-            judul_text_width = painter.fontMetrics().boundingRect(judul_text).width()
-            total_x = (printer.pageRect().width() - judul_text_width) / 2
-            painter.drawText(total_x, y, judul_text)
-            y += line_height
+            lh = 150
+            pw = printer.pageRect().width()
 
-            painter.setFont(QtGui.QFont("Arial", 12))
-            Univ = "Universitas Borneo Tarakan"
-            univ_text_width = painter.fontMetrics().boundingRect(Univ).width()
-            univ_x = (printer.pageRect().width() - univ_text_width) / 2
-            painter.drawText(univ_x, y, Univ)
-            y += line_height
+            def center_text(text, font, ypos):
+                painter.setFont(font)
+                w = painter.fontMetrics().boundingRect(text).width()
+                painter.drawText((pw - w) // 2, ypos, text)
 
-            painter.setFont(QtGui.QFont("Arial", 12, QtGui.QFont.Bold))
-            tek_kom_text = "Teknik Komputer"
-            tek_kom_text_width = painter.fontMetrics().boundingRect(tek_kom_text).width()
-            tek_kom_x = (printer.pageRect().width() - tek_kom_text_width) / 2
-            painter.drawText(tek_kom_x, y, tek_kom_text)
-            y += line_height
+            center_text("Restoran Cepat Saji", QtGui.QFont("Arial", 12, QtGui.QFont.Bold), y); y += lh
+            center_text("Universitas Borneo Tarakan", QtGui.QFont("Arial", 11), y); y += lh
+            center_text("Teknik Komputer", QtGui.QFont("Arial", 11, QtGui.QFont.Bold), y); y += lh
+            center_text("=" * 40, QtGui.QFont("Arial", 10), y); y += lh
 
-            garis =  "==========================================="
-            garis_width = painter.fontMetrics().boundingRect(garis).width()
-            garis_x = (printer.pageRect().width() - garis_width) / 2
-            painter.drawText(garis_x, y, garis)
-            y += line_height
+            painter.setFont(QtGui.QFont("Arial", 11, QtGui.QFont.Bold))
+            painter.drawText(x, y, "Struk Belanja"); y += lh
 
-            painter.setFont(QtGui.QFont("Arial", 12))
-            painter.drawText(x, y, "Struk Belanja")
-            y += line_height
-            
             painter.setFont(QtGui.QFont("Arial", 10))
-            painter.drawText(x, y, "Daftar Belanja:")
-            y += line_height
-            
-            row_count = self.table_2.rowCount()
-            for row in range(row_count):
-                nama_barang = self.table_2.item(row, 1).text()
-                harga = str(self.table_2.item(row, 2).text())
-                jumlah = str(self.table_2.item(row, 3).text())
-                subtotal = str(self.table_2.item(row, 4).text())
-                subtotal_width = painter.fontMetrics().boundingRect(subtotal).width()
-                text = f"{nama_barang}: {harga} x {jumlah}"
-                subtotal_x = printer.pageRect().width() - margin - subtotal_width
-                painter.drawText(subtotal_x, y, subtotal)
-                painter.drawText(x, y, text)
-                y += line_height
-            
-            painter.setFont(QtGui.QFont("Arial", 12))
-            garis =  "==========================================="
-            garis_width = painter.fontMetrics().boundingRect(garis).width()
-            garis_x = (printer.pageRect().width() - garis_width) / 2
-            painter.drawText(garis_x, y, garis)
-            y += line_height
-            
+            painter.drawText(x, y, "Daftar Belanja:"); y += lh
+
+            for row in range(self.table_2.rowCount()):
+                nama = self.table_2.item(row, 1).text()
+                hrg = self.table_2.item(row, 2).text()
+                jml = self.table_2.item(row, 3).text()
+                sub = self.table_2.item(row, 4).text()
+                painter.setFont(QtGui.QFont("Arial", 10))
+                painter.drawText(x, y, f"{nama}: Rp{hrg} x {jml}")
+                sw = painter.fontMetrics().boundingRect(f"Rp{sub}").width()
+                painter.drawText(pw - margin - sw, y, f"Rp{sub}")
+                y += lh
+
+            center_text("=" * 40, QtGui.QFont("Arial", 10), y); y += lh
+
+            total_val = self.hitung_total()
+            bayar_val = self.uangpembayaran.text()
+
             painter.setFont(QtGui.QFont("Arial", 10, QtGui.QFont.Bold))
             painter.drawText(x, y, "Total:")
-            
-            total_text = str(self.hitung_total())
-            total_text_width = painter.fontMetrics().boundingRect(total_text).width()
-            total_x = printer.pageRect().width() - margin - total_text_width
-            painter.drawText(total_x, y, total_text)
-            y += line_height
+            tv = f"Rp{total_val:,}"
+            tw = painter.fontMetrics().boundingRect(tv).width()
+            painter.drawText(pw - margin - tw, y, tv); y += lh
 
-            painter.setFont(QtGui.QFont("Arial", 12))
-            garis =  "============================================="
-            garis_width = painter.fontMetrics().boundingRect(garis).width()
-            garis_x = (printer.pageRect().width() - garis_width) / 2
-            painter.drawText(garis_x, y, garis)
-            y += line_height
-            
-            painter.setFont(QtGui.QFont("Arial", 10, QtGui.QFont.Bold))
             painter.drawText(x, y, "Bayar:")
-            
-
-            bayar_text = str(self.uangpembayaran.text())
-            bayar_text_width = painter.fontMetrics().boundingRect(bayar_text).width()
-            bayar_x = printer.pageRect().width() - margin - bayar_text_width
-            painter.drawText(bayar_x, y, bayar_text)
-            y += line_height
+            bv = f"Rp{bayar_val}"
+            bw = painter.fontMetrics().boundingRect(bv).width()
+            painter.drawText(pw - margin - bw, y, bv); y += lh
 
             painter.setFont(QtGui.QFont("Arial", 10))
-            painter.drawText(x, y, "kembalian:")
-            
-            if bayar_text:
-                bayar = int(bayar_text)
-                total = int(total_text)
-                kembali_text = bayar - total
-                kembali_text = str(kembali_text)
-                kembali_text_width = painter.fontMetrics().boundingRect(kembali_text).width()
-                kembali_x = printer.pageRect().width() - margin - kembali_text_width
-                painter.drawText(kembali_x, y, kembali_text)
-            else:
-                # Handle case when the input is empty
-                kembali_text = "Input bayar tidak valid"
-                kembali_text_width = painter.fontMetrics().boundingRect(kembali_text).width()
-                kembali_x = printer.pageRect().width() - margin - kembali_text_width
-                painter.drawText(kembali_x, y, kembali_text)
-            y += line_height
-            
-            painter.setFont(QtGui.QFont("Arial", 12))
-            garis =  "============================================="
-            garis_width = painter.fontMetrics().boundingRect(garis).width()
-            garis_x = (printer.pageRect().width() - garis_width) / 2
-            painter.drawText(garis_x, y, garis)
-            y += line_height
+            painter.drawText(x, y, "Kembalian:")
+            try:
+                kb = int(bayar_val) - int(total_val)
+                kv = f"Rp{kb:,}"
+            except Exception:
+                kv = "—"
+            kw = painter.fontMetrics().boundingRect(kv).width()
+            painter.drawText(pw - margin - kw, y, kv); y += lh
 
-            painter.setFont(QtGui.QFont("Arial", 12))
-            judul_text = "Terima Kasih Telah Berbelanja"
-            judul_text_width = painter.fontMetrics().boundingRect(judul_text).width()
-            total_x = (printer.pageRect().width() - judul_text_width) / 2
-            painter.drawText(total_x, y, judul_text)
-            
+            center_text("=" * 40, QtGui.QFont("Arial", 10), y); y += lh
+            center_text("Terima Kasih Telah Berbelanja!", QtGui.QFont("Arial", 12, QtGui.QFont.Bold), y)
+
             painter.end()
             self.clearform2()
 
     def jum(self):
         jum = 0
-        rowcount = self.table_2.rowCount()
-        for row in range(rowcount):
+        for row in range(self.table_2.rowCount()):
             item = self.table_2.item(row, 3)
-            if item is not None:
-                juml = float(item.text())
-                jum += juml
-                self.jumlah2.setText("{:.0f}".format(jum))
+            if item:
+                jum += float(item.text())
+        self.jumlah2.setText(f"{jum:.0f}")
 
-    #untuk struk        
     def hitung_total(self):
         total = 0
-        row_count = self.table_2.rowCount()
-        for row in range(row_count):
-            harga = int(self.table_2.item(row, 2).text())
-            jumlah = int(self.table_2.item(row, 3).text())
-            total += harga * jumlah
+        for row in range(self.table_2.rowCount()):
+            try:
+                h = float(self.table_2.item(row, 2).text())
+                j = float(self.table_2.item(row, 3).text())
+                total += h * j
+            except (ValueError, AttributeError):
+                pass
         return total
-    
-    #untuk bayar
+
     def tot(self):
-        tota = 0
-        rowcount = self.table_2.rowCount()
-        for row in range(rowcount):
+        total = 0
+        for row in range(self.table_2.rowCount()):
             item = self.table_2.item(row, 4)
-            if item is not None:
-                harga = float(item.text())
-                tota += harga
-                self.totalbayar.setText("{:.0f}".format(tota))
+            if item:
+                try:
+                    total += float(item.text())
+                except ValueError:
+                    pass
+        self.totalbayar.setText(f"{total:.0f}")
 
     def hapuss(self):
         row = self.table_2.currentRow()
@@ -319,24 +302,22 @@ class kasir(QDialog):
             self.table_2.removeRow(row)
             self.tot()
             self.jum()
-
+        else:
+            QMessageBox.information(self, "Info", "Pilih item yang ingin dihapus!")
 
     def getitem(self):
         row = self.table_1.currentRow()
-        tipeMenu = self.table_1.item(row,0).text()
-        namaMenu = self.table_1.item(row,1).text()
-        hargaa = self.table_1.item(row,2).text()
-        self.kategori.setText(tipeMenu)
-        self.pilihanmenu.setText(namaMenu)
-        self.harga.setText(hargaa)
-    
-    #def printstruk(self):
-        #doc 
-    
+        if row < 0:
+            return
+        self.kategori.setText(self.table_1.item(row, 0).text())
+        self.pilihanmenu.setText(self.table_1.item(row, 1).text())
+        self.harga.setText(self.table_1.item(row, 2).text())
+        self.jumlah.setFocus()
+
     def batals(self):
         self.clearform()
-        self.clearform2()        
-        
+        self.clearform2()
+
     def loaddata(self):
         conn = get_connection()
         curr = conn.cursor()
@@ -346,20 +327,18 @@ class kasir(QDialog):
         conn.close()
         self.table_1.setRowCount(len(result))
         for row, item in enumerate(result):
-            self.table_1.setItem(row,0,QtWidgets.QTableWidgetItem(item[1]))
-            self.table_1.setItem(row,1,QtWidgets.QTableWidgetItem(item[2]))
-            self.table_1.setItem(row,2,QtWidgets.QTableWidgetItem(str(item[3])))
-    
+            self.table_1.setItem(row, 0, QtWidgets.QTableWidgetItem(item[1]))
+            self.table_1.setItem(row, 1, QtWidgets.QTableWidgetItem(item[2]))
+            self.table_1.setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[3])))
+
     def keluars(self):
         self.logout = lognin()
         self.logout.show()
         self.close()
 
-        
 
 if __name__ == "__main__":
-	MainApp = QtWidgets.QApplication(sys.argv)
-	widget = QWidget,QTableWidget()
-	App = lognin()
-	App.show()
-	sys.exit(MainApp.exec_())
+    app = QApplication(sys.argv)
+    window = lognin()
+    window.show()
+    sys.exit(app.exec_())
