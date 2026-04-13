@@ -5,8 +5,16 @@ import sys
 
 # helper to obtain a database connection
 
+_window = None
+
 def get_connection():
-    return mysql.connector.connect(user='andriefendy', password='Andri2608.', host='127.0.0.1', database='warungme')
+    return mysql.connector.connect(
+        user='root',
+        password='',
+        host='127.0.0.1',
+        database='warungme',
+        use_pure=True
+    )
 
 
 class login(QDialog):
@@ -25,21 +33,37 @@ class login(QDialog):
     def loginfungsion(self):
         username = self.emailfield.text()
         password = self.passwordfield.text()
-        conn = get_connection()
-        curr = conn.cursor()
-        curr.execute("SELECT * FROM auth WHERE username=%s AND pass=%s", (username, password))
-        user = curr.fetchone()
-        curr.close()
-        conn.close()
+        conn = None
+        curr = None
+        try:
+            conn = get_connection()
+            curr = conn.cursor()
+            curr.execute("SELECT * FROM auth WHERE username=%s AND pass=%s", (username, password))
+            user = curr.fetchone()
+        except Exception as e:
+            QMessageBox.critical(self, 'Database Error', f'Could not login: {e}')
+            return
+        finally:
+            if curr is not None:
+                curr.close()
+            if conn is not None:
+                conn.close()
+
         if user:
             self.masukkasir()
             QMessageBox.information(self, 'Alert', 'login berhasil')
         else:
             self.error.setText("masukkan akun yang benar")
 
+    # def masukkasir(self):
+    #     self.openkasir = Pilihan()
+    #     self.openkasir.show()
+    #     self.close()
+
     def masukkasir(self):
-        self.openkasir = Pilihan()
-        self.openkasir.show()
+        global _window
+        _window = Pilihan()   # ← simpan ke global, bukan self
+        _window.show()
         self.close()
 
 
@@ -305,6 +329,7 @@ class Laporan(QDialog):
 
 if __name__ == "__main__":
     MainApp = QtWidgets.QApplication(sys.argv)
+    MainApp.setQuitOnLastWindowClosed(False) 
     widget = QWidget()
     App = login()
     App.show()

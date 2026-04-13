@@ -10,10 +10,11 @@ import mysql.connector
 
 def get_connection():
     return mysql.connector.connect(
-        user='andriefendy',
-        password='Andri2608.',
+        user='root',
+        password='',
         host='127.0.0.1',
-        database='warungme'
+        database='warungme',
+        use_pure=True
     )
 
 
@@ -33,12 +34,22 @@ class lognin(QDialog):
     def loginfungsion(self):
         username = self.emailfield.text()
         password = self.passwordfield.text()
-        conn = get_connection()
-        curr = conn.cursor()
-        curr.execute("SELECT * FROM auth WHERE username=%s AND pass=%s", (username, password))
-        user = curr.fetchone()
-        curr.close()
-        conn.close()
+        conn = None
+        curr = None
+        try:
+            conn = get_connection()
+            curr = conn.cursor()
+            curr.execute("SELECT * FROM auth WHERE username=%s AND pass=%s", (username, password))
+            user = curr.fetchone()
+        except Exception as e:
+            QMessageBox.critical(self, 'Database Error', f'Could not login: {e}')
+            return
+        finally:
+            if curr is not None:
+                curr.close()
+            if conn is not None:
+                conn.close()
+
         if user is not None:
             self.masukkasir()
         else:
@@ -340,5 +351,6 @@ class kasir(QDialog):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = lognin()
+    
     window.show()
     sys.exit(app.exec_())
