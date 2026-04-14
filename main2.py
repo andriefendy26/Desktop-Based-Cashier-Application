@@ -3,9 +3,8 @@ from PyQt5 import QtWidgets, uic, QtCore
 import mysql.connector
 import sys
 
-# helper to obtain a database connection
-
 _window = None
+
 
 def get_connection():
     return mysql.connector.connect(
@@ -51,18 +50,13 @@ class login(QDialog):
 
         if user:
             self.masukkasir()
-            QMessageBox.information(self, 'Alert', 'login berhasil')
+            QMessageBox.information(self, 'Alert', 'Login berhasil')
         else:
-            self.error.setText("masukkan akun yang benar")
-
-    # def masukkasir(self):
-    #     self.openkasir = Pilihan()
-    #     self.openkasir.show()
-    #     self.close()
+            self.error.setText("Masukkan akun yang benar")
 
     def masukkasir(self):
         global _window
-        _window = Pilihan()   # ← simpan ke global, bukan self
+        _window = Pilihan()
         _window.show()
         self.close()
 
@@ -109,6 +103,9 @@ class DftrMenu(QDialog):
         self.tombol()
         self.tabelWidtg()
         self.loaddata()
+        # FIX: set state awal tombol dengan benar
+        self.simpan.setText('baru')
+        self.edit.setText('edit tabel')
         self.activeText(False)
 
     def center(self):
@@ -128,29 +125,34 @@ class DftrMenu(QDialog):
     def tabelWidtg(self):
         header = self.tableWidget.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.Stretch)
-        self.tableWidget.setColumnWidth(0,100)
-        self.tableWidget.setColumnWidth(1,150)
-        self.tableWidget.setColumnWidth(2,180)
-        self.tableWidget.setColumnWidth(3,165)
 
     def loaddata(self):
-        conn = get_connection()
-        curr = conn.cursor()
-        curr.execute("SELECT * FROM tbbarang ORDER BY total DESC")
-        result = curr.fetchall()
-        curr.close()
-        conn.close()
+        conn = None
+        curr = None
+        try:
+            conn = get_connection()
+            curr = conn.cursor()
+            # FIX: ORDER BY total diganti harga karena kolom 'total' tidak ada di tbbarang
+            curr.execute("SELECT idMenu, kategori, namaMenu, harga FROM tbbarang ORDER BY harga DESC")
+            result = curr.fetchall()
+        except Exception as e:
+            QMessageBox.critical(self, 'Database Error', f'Gagal memuat data: {e}')
+            return
+        finally:
+            if curr:
+                curr.close()
+            if conn:
+                conn.close()
+
         self.tableWidget.setRowCount(len(result))
         for row, item in enumerate(result):
-            self.tableWidget.setItem(row,0,QtWidgets.QTableWidgetItem(item[0]))
-            self.tableWidget.setItem(row,1,QtWidgets.QTableWidgetItem(item[1]))
-            self.tableWidget.setItem(row,2,QtWidgets.QTableWidgetItem(item[2]))
-            self.tableWidget.setItem(row,3,QtWidgets.QTableWidgetItem(str(item[3])))
+            for col in range(4):
+                self.tableWidget.setItem(row, col, QtWidgets.QTableWidgetItem(str(item[col])))
 
     def clearform(self):
         self.textIdMenu.setFocus()
         self.textIdMenu.clear()
-        self.cbKategori.setCurrentText('')
+        self.cbKategori.setCurrentIndex(0)
         self.textMenu.clear()
         self.textHarga.clear()
 
@@ -160,75 +162,134 @@ class DftrMenu(QDialog):
         self.textMenu.setEnabled(enable)
         self.textHarga.setEnabled(enable)
 
+    def _validate_form(self):
+        """Validasi input form sebelum INSERT atau UPDATE."""
+        idMenu = self.textIdMenu.text().strip()
+        namaMenu = self.textMenu.text().strip()
+        hargaa = self.textHarga.text().strip()
+
+        if not idMenu:
+            QMessageBox.warning(self, "Input Error", "ID Menu tidak boleh kosong.")
+            return False
+        if len(idMenu) > 5:
+            QMessageBox.warning(self, "Input Error", "ID Menu maksimal 5 karakter.")
+            return False
+        if not namaMenu:
+            QMessageBox.warning(self, "Input Error", "Nama menu tidak boleh kosong.")
+            return False
+        if not hargaa.isdigit():
+            QMessageBox.warning(self, "Input Error", "Harga harus berupa angka.")
+            return False
+        return True
+
     def getitem(self):
         row = self.tableWidget.currentRow()
         if row < 0:
             return
-        id_item = self.tableWidget.item(row,0)
-        if id_item is None:
+        # FIX: cek semua kolom, bukan hanya kolom pertama
+        items = [self.tableWidget.item(row, col) for col in range(4)]
+        if any(i is None for i in items):
             return
-        idMenu = id_item.text()
-        tipeMenu = self.tableWidget.item(row,1).text()
-        namaMenu = self.tableWidget.item(row,2).text()
-        hargaa = self.tableWidget.item(row,3).text()
-        self.textIdMenu.setText(idMenu)
-        self.cbKategori.setCurrentText(tipeMenu)
-        self.textMenu.setText(namaMenu)
-        self.textHarga.setText(hargaa)
+        self.textIdMenu.setText(items[0].text())
+        self.cbKategori.setCurrentText(items[1].text())
+        self.textMenu.setText(items[2].text())
+        self.textHarga.setText(items[3].text())
 
     def edittext(self):
         cb = self.edit.text()
         if cb == 'edit tabel':
-            self.activeText(True)
-            self.clearform()
-            self.edit.setText('simpan')
-        elif cb == 'simpan':
-            idMenu = self.textIdMenu.text()
-            if len(idMenu) > 5:
-                QMessageBox.warning(self, "Input Error", "ID menu cannot be longer than 5 characters.")
+            # FIX: pastikan ada baris yang dipilih sebelum masuk mode edit
+            row = self.tableWidget.currentRow()
+            if row < 0:
+                QMessageBox.warning(self, "Pilih Data", "Pilih baris yang ingin diedit terlebih dahulu.")
                 return
-            conn = get_connection()
-            curr = conn.cursor()
+            self.activeText(True)
+            self.edit.setText('simpan')
+
+        elif cb == 'simpan':
+            if not self._validate_form():
+                return
+
+            idMenu   = self.textIdMenu.text().strip()
             tipeMenu = self.cbKategori.currentText()
-            namaMenu = self.textMenu.text()
-            hargaa = self.textHarga.text()
+            namaMenu = self.textMenu.text().strip()
+            hargaa   = self.textHarga.text().strip()
+
+            conn = None
+            curr = None
             try:
+                conn = get_connection()
+                curr = conn.cursor()
                 curr.execute(
                     "UPDATE tbbarang SET kategori=%s, namaMenu=%s, harga=%s WHERE idMenu=%s",
                     (tipeMenu, namaMenu, hargaa, idMenu),
                 )
                 conn.commit()
-            except mysql.connector.DataError as e:
-                QMessageBox.critical(self, "Database Error", f"Failed to update data: {e}")
+                # FIX: cek apakah data benar-benar terupdate
+                if curr.rowcount == 0:
+                    QMessageBox.warning(self, "Tidak Ditemukan", f"ID '{idMenu}' tidak ditemukan di database.")
+                    return
+                QMessageBox.information(self, "Berhasil", "Data berhasil diperbarui.")
+            except mysql.connector.Error as e:
+                QMessageBox.critical(self, "Database Error", f"Gagal mengupdate data: {e}")
+                return
             finally:
-                curr.close()
-                conn.close()
+                if curr:
+                    curr.close()
+                if conn:
+                    conn.close()
+
             self.loaddata()
             self.activeText(False)
             self.clearform()
             self.edit.setText('edit tabel')
 
     def hapusData(self):
-        conn = get_connection()
-        curr = conn.cursor()
-        idMenu = self.textIdMenu.text()
-        curr.execute("DELETE FROM tbbarang WHERE idMenu=%s", (idMenu,))
-        conn.commit()
-        curr.close()
-        conn.close()
+        # FIX: validasi idMenu tidak kosong sebelum hapus
+        idMenu = self.textIdMenu.text().strip()
+        if not idMenu:
+            QMessageBox.warning(self, "Pilih Data", "Pilih baris yang ingin dihapus terlebih dahulu.")
+            return
+
+        # FIX: tambah konfirmasi sebelum hapus agar tidak terhapus tidak sengaja
+        konfirmasi = QMessageBox.question(
+            self, "Konfirmasi Hapus",
+            f"Yakin ingin menghapus item dengan ID '{idMenu}'?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        if konfirmasi != QMessageBox.Yes:
+            return
+
+        conn = None
+        curr = None
+        try:
+            conn = get_connection()
+            curr = conn.cursor()
+            curr.execute("DELETE FROM tbbarang WHERE idMenu=%s", (idMenu,))
+            conn.commit()
+            if curr.rowcount == 0:
+                QMessageBox.warning(self, "Tidak Ditemukan", f"ID '{idMenu}' tidak ditemukan.")
+                return
+            QMessageBox.information(self, "Berhasil", "Data berhasil dihapus.")
+        except mysql.connector.Error as e:
+            QMessageBox.critical(self, "Database Error", f"Gagal menghapus data: {e}")
+            return
+        finally:
+            if curr:
+                curr.close()
+            if conn:
+                conn.close()
+
         self.loaddata()
+        self.activeText(False)
+        self.clearform()
 
     def batals(self):
-        cb = self.simpan.text()
-        ed = self.edit.text()
-        if cb == 'simpan':
-            self.simpan.setText('baru')
-            self.clearform()
-            self.activeText(False)
-        elif ed == 'simpan':
-            self.edit.setText('edit tabel')
-            self.clearform()
-            self.activeText(False)
+        # FIX: sederhanakan — langsung reset semua state tanpa cek kondisi ganda
+        self.simpan.setText('baru')
+        self.edit.setText('edit tabel')
+        self.clearform()
+        self.activeText(False)
 
     def simpandata(self):
         cb = self.simpan.text()
@@ -236,29 +297,44 @@ class DftrMenu(QDialog):
             self.activeText(True)
             self.clearform()
             self.simpan.setText('simpan')
+            # FIX: pastikan tombol edit tidak bentrok di mode tambah data baru
+            self.edit.setText('edit tabel')
+
         elif cb == 'simpan':
-            # validation: IdMenu length must fit in schema (varchar(5))
-            idMenu = self.textIdMenu.text()
-            if len(idMenu) > 5:
-                QMessageBox.warning(self, "Input Error", "ID menu cannot be longer than 5 characters.")
+            if not self._validate_form():
                 return
+
+            idMenu   = self.textIdMenu.text().strip()
             tipeMenu = self.cbKategori.currentText()
-            namaMenu = self.textMenu.text()
-            hargaa = self.textHarga.text()
+            namaMenu = self.textMenu.text().strip()
+            hargaa   = self.textHarga.text().strip()
+
+            conn = None
+            curr = None
             try:
                 conn = get_connection()
                 curr = conn.cursor()
-                curr.execute("INSERT INTO tbbarang (idMenu, kategori, namaMenu, harga) VALUES (%s, %s, %s, %s)",
-                             (idMenu, tipeMenu, namaMenu, hargaa))
+                curr.execute(
+                    "INSERT INTO tbbarang (idMenu, kategori, namaMenu, harga) VALUES (%s, %s, %s, %s)",
+                    (idMenu, tipeMenu, namaMenu, hargaa)
+                )
                 conn.commit()
-            except mysql.connector.DataError as e:
-                QMessageBox.critical(self, "Database Error", f"Failed to save data: {e}")
+                QMessageBox.information(self, "Berhasil", "Data berhasil disimpan.")
+            except mysql.connector.IntegrityError:
+                # FIX: tangkap error duplikat primary key secara spesifik
+                QMessageBox.critical(self, "Duplikasi", f"ID Menu '{idMenu}' sudah ada. Gunakan ID yang berbeda.")
+                return
+            except mysql.connector.Error as e:
+                QMessageBox.critical(self, "Database Error", f"Gagal menyimpan data: {e}")
+                return
             finally:
-                try:
+                if curr:
                     curr.close()
+                if conn:
                     conn.close()
-                except Exception:
-                    pass
+
+            # FIX: ubah state tombol SETELAH commit berhasil, bukan sebelumnya
+            self.simpan.setText('baru')
             self.loaddata()
             self.activeText(False)
             self.clearform()
@@ -275,8 +351,8 @@ class Laporan(QDialog):
         uic.loadUi("Data.ui", self)
         self.center()
         self.tombol()
-        self.loaddata2()
         self.tabelWidtg()
+        self.loaddata2()
         self.tot()
 
     def center(self):
@@ -288,36 +364,54 @@ class Laporan(QDialog):
     def tabelWidtg(self):
         header = self.tableWidget_2.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.Stretch)
-        self.tableWidget_2.setColumnWidth(0,330)
-        self.tableWidget_2.setColumnWidth(1,250)
-        self.tableWidget_2.setColumnWidth(2,280)
 
     def tombol(self):
         self.keluar.clicked.connect(self.kembali)
 
     def loaddata2(self):
-        conn = get_connection()
-        curr = conn.cursor()
-        curr.execute("SELECT * FROM laporan")
-        result = curr.fetchall()
-        curr.close()
-        conn.close()
+        conn = None
+        curr = None
+        try:
+            conn = get_connection()
+            curr = conn.cursor()
+            curr.execute("SELECT * FROM laporan")
+            result = curr.fetchall()
+        except Exception as e:
+            QMessageBox.critical(self, 'Database Error', f'Gagal memuat laporan: {e}')
+            return
+        finally:
+            if curr:
+                curr.close()
+            if conn:
+                conn.close()
+
         self.tableWidget_2.setRowCount(len(result))
         for row, item in enumerate(result):
-            self.tableWidget_2.setItem(row,0,QtWidgets.QTableWidgetItem(item[1]))
-            self.tableWidget_2.setItem(row,1,QtWidgets.QTableWidgetItem(str(item[2])))
-            self.tableWidget_2.setItem(row,2,QtWidgets.QTableWidgetItem(str(item[3])))
+            self.tableWidget_2.setItem(row, 0, QtWidgets.QTableWidgetItem(str(item[1])))
+            self.tableWidget_2.setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[2])))
+            self.tableWidget_2.setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[3])))
 
     def tot(self):
-        tota = 0
-        conn = get_connection()
-        curr = conn.cursor()
-        curr.execute("SELECT total FROM laporan")
-        rows = curr.fetchall()
-        curr.close()
-        conn.close()
-        for row in rows:
-            tota += float(row[0])
+        tota = 0.0
+        conn = None
+        curr = None
+        try:
+            conn = get_connection()
+            curr = conn.cursor()
+            curr.execute("SELECT total FROM laporan")
+            rows = curr.fetchall()
+            for row in rows:
+                # FIX: skip nilai None agar tidak crash saat float(None)
+                if row[0] is not None:
+                    tota += float(row[0])
+        except Exception as e:
+            QMessageBox.critical(self, 'Database Error', f'Gagal memuat total: {e}')
+        finally:
+            if curr:
+                curr.close()
+            if conn:
+                conn.close()
+
         self.Total.setStyleSheet("font-size: 18px")
         self.Total.setText("RP.{:.0f}".format(tota))
 
@@ -329,7 +423,7 @@ class Laporan(QDialog):
 
 if __name__ == "__main__":
     MainApp = QtWidgets.QApplication(sys.argv)
-    MainApp.setQuitOnLastWindowClosed(False) 
+    MainApp.setQuitOnLastWindowClosed(False)
     widget = QWidget()
     App = login()
     App.show()
