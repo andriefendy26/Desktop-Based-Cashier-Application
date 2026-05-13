@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1200</width>
-    <height>720</height>
+    <height>859</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,11 +19,11 @@
 QDialog, QWidget#widget {
     background-color: #0f1117;
     color: #e2e8f0;
-    font-family: "Segoe UI", sans-serif;
+    font-family: &quot;Segoe UI&quot;, sans-serif;
     font-size: 13px;
 }
 
-/* ─── Frame (panel kiri) ─── */
+/* ─── Frame (panel kanan) ─── */
 QFrame#frame {
     background-color: #1a1f2e;
     border: 1px solid #2d3548;
@@ -44,9 +44,23 @@ QLabel#label {
     background: transparent;
 }
 
-QLabel#label_6, QLabel#label_7 {
+QLabel#label_6, QLabel#label_7, QLabel#label_8 {
     color: #38bdf8;
     font-size: 14px;
+    font-weight: 700;
+    background: transparent;
+}
+
+QLabel#lbl_makanan {
+    color: #f97316;
+    font-size: 13px;
+    font-weight: 700;
+    background: transparent;
+}
+
+QLabel#lbl_minuman {
+    color: #34d399;
+    font-size: 13px;
     font-weight: 700;
     background: transparent;
 }
@@ -151,6 +165,18 @@ QHeaderView::section {
     border-bottom: 2px solid #38bdf8;
 }
 
+/* Header makanan — oranye */
+QTableWidget#table_makanan QHeaderView::section {
+    color: #f97316;
+    border-bottom: 2px solid #f97316;
+}
+
+/* Header minuman — hijau */
+QTableWidget#table_minuman QHeaderView::section {
+    color: #34d399;
+    border-bottom: 2px solid #34d399;
+}
+
 QTableWidget::item {
     padding: 8px 12px;
     border-bottom: 1px solid #1e2436;
@@ -189,205 +215,500 @@ QScrollBar::handle:horizontal {
 }
 QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
 
-/* ─── Separator Line ─── */
-QFrame#line {
+/* ─── Separator ─── */
+QFrame#line, QFrame#line_2 {
     color: #2d3548;
     background-color: #2d3548;
 }
    </string>
   </property>
-
-  <!-- ════════════════════════════════════════════ -->
-  <!-- MAIN WIDGET                                  -->
-  <!-- ════════════════════════════════════════════ -->
   <widget class="QWidget" name="widget" native="true">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>720</height>
+     <height>851</height>
     </rect>
    </property>
-
-   <!-- ════ PANEL KIRI ════ -->
+   <widget class="QLabel" name="label_7">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>20</y>
+      <width>300</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>📋  Daftar Menu</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lbl_makanan">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>56</y>
+      <width>200</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>🍽  Makanan</string>
+    </property>
+   </widget>
+   <widget class="QTableWidget" name="table_makanan">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>84</y>
+      <width>621</width>
+      <height>240</height>
+     </rect>
+    </property>
+    <column>
+     <property name="text">
+      <string>Kategori</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Nama</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Harga</string>
+     </property>
+    </column>
+   </widget>
+   <widget class="QLabel" name="lbl_minuman">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>334</y>
+      <width>200</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>🥤  Minuman</string>
+    </property>
+   </widget>
+   <widget class="QTableWidget" name="table_minuman">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>362</y>
+      <width>621</width>
+      <height>200</height>
+     </rect>
+    </property>
+    <column>
+     <property name="text">
+      <string>Kategori</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Nama</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Harga</string>
+     </property>
+    </column>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>570</y>
+      <width>250</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>🛍  Keranjang Belanja</string>
+    </property>
+   </widget>
+   <widget class="QTableWidget" name="table_2">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>604</y>
+      <width>621</width>
+      <height>180</height>
+     </rect>
+    </property>
+    <column>
+     <property name="text">
+      <string>Kategori</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Nama</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Harga</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Jumlah</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Total</string>
+     </property>
+    </column>
+   </widget>
+   <widget class="QPushButton" name="hapus">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>796</y>
+      <width>130</width>
+      <height>36</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>🗑  Hapus</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="batal">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>796</y>
+      <width>130</width>
+      <height>36</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>↩  Batal</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="keluar">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>796</y>
+      <width>130</width>
+      <height>36</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>✕  Keluar</string>
+    </property>
+   </widget>
    <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>730</x>
       <y>20</y>
       <width>430</width>
-      <height>680</height>
+      <height>811</height>
      </rect>
     </property>
-    <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
-    <property name="frameShadow"><enum>QFrame::Raised</enum></property>
-
-    <!-- Title -->
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
     <widget class="QLabel" name="label">
-     <property name="geometry"><rect><x>24</x><y>20</y><width>250</width><height>40</height></rect></property>
-     <property name="text"><string>🛒  Check Out</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>20</y>
+       <width>250</width>
+       <height>40</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>🛒  Check Out</string>
+     </property>
     </widget>
-
-    <!-- KATEGORI -->
     <widget class="QLabel" name="label_2">
-     <property name="geometry"><rect><x>24</x><y>76</y><width>120</width><height>20</height></rect></property>
-     <property name="text"><string>Kategori</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>76</y>
+       <width>120</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Kategori</string>
+     </property>
     </widget>
     <widget class="QLineEdit" name="kategori">
-     <property name="geometry"><rect><x>24</x><y>98</y><width>382</width><height>34</height></rect></property>
-     <property name="placeholderText"><string>Kategori menu...</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>98</y>
+       <width>382</width>
+       <height>34</height>
+      </rect>
+     </property>
+     <property name="placeholderText">
+      <string>Kategori menu...</string>
+     </property>
     </widget>
-
-    <!-- PILIHAN MENU -->
     <widget class="QLabel" name="label_3">
-     <property name="geometry"><rect><x>24</x><y>144</y><width>120</width><height>20</height></rect></property>
-     <property name="text"><string>Pilihan Menu</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>144</y>
+       <width>120</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Pilihan Menu</string>
+     </property>
     </widget>
     <widget class="QLineEdit" name="pilihanmenu">
-     <property name="geometry"><rect><x>24</x><y>166</y><width>382</width><height>34</height></rect></property>
-     <property name="placeholderText"><string>Nama menu...</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>166</y>
+       <width>382</width>
+       <height>34</height>
+      </rect>
+     </property>
+     <property name="placeholderText">
+      <string>Nama menu...</string>
+     </property>
     </widget>
-
-    <!-- HARGA -->
     <widget class="QLabel" name="label_4">
-     <property name="geometry"><rect><x>24</x><y>212</y><width>120</width><height>20</height></rect></property>
-     <property name="text"><string>Harga</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>212</y>
+       <width>120</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Harga</string>
+     </property>
     </widget>
     <widget class="QLineEdit" name="harga">
-     <property name="geometry"><rect><x>24</x><y>234</y><width>382</width><height>34</height></rect></property>
-     <property name="placeholderText"><string>0</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>234</y>
+       <width>382</width>
+       <height>34</height>
+      </rect>
+     </property>
+     <property name="placeholderText">
+      <string>0</string>
+     </property>
     </widget>
-
-    <!-- JUMLAH + SIMPAN -->
     <widget class="QLabel" name="label_5">
-     <property name="geometry"><rect><x>24</x><y>280</y><width>120</width><height>20</height></rect></property>
-     <property name="text"><string>Jumlah</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>280</y>
+       <width>120</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Jumlah</string>
+     </property>
     </widget>
     <widget class="QLineEdit" name="jumlah">
-     <property name="geometry"><rect><x>24</x><y>302</y><width>264</width><height>34</height></rect></property>
-     <property name="placeholderText"><string>0</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>302</y>
+       <width>264</width>
+       <height>34</height>
+      </rect>
+     </property>
+     <property name="placeholderText">
+      <string>0</string>
+     </property>
     </widget>
     <widget class="QPushButton" name="simpan">
-     <property name="geometry"><rect><x>300</x><y>302</y><width>106</width><height>34</height></rect></property>
-     <property name="text"><string>+ Tambah</string></property>
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>302</y>
+       <width>106</width>
+       <height>34</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>+ Tambah</string>
+     </property>
     </widget>
-
-    <!-- DIVIDER -->
     <widget class="Line" name="line">
-     <property name="geometry"><rect><x>24</x><y>352</y><width>382</width><height>2</height></rect></property>
-     <property name="orientation"><enum>Qt::Horizontal</enum></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>352</y>
+       <width>382</width>
+       <height>2</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
     </widget>
-
-    <!-- TOTAL BAYAR -->
     <widget class="QLabel" name="label_18">
-     <property name="geometry"><rect><x>24</x><y>366</y><width>150</width><height>20</height></rect></property>
-     <property name="text"><string>Total Bayar</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>366</y>
+       <width>150</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Total Bayar</string>
+     </property>
     </widget>
     <widget class="QLineEdit" name="totalbayar">
-     <property name="geometry"><rect><x>24</x><y>388</y><width>382</width><height>34</height></rect></property>
-     <property name="placeholderText"><string>Rp 0</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>388</y>
+       <width>382</width>
+       <height>34</height>
+      </rect>
+     </property>
+     <property name="placeholderText">
+      <string>Rp 0</string>
+     </property>
     </widget>
-
-    <!-- UANG PEMBAYARAN -->
     <widget class="QLabel" name="label_19">
-     <property name="geometry"><rect><x>24</x><y>434</y><width>150</width><height>20</height></rect></property>
-     <property name="text"><string>Uang Pembayaran</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>434</y>
+       <width>150</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Uang Pembayaran</string>
+     </property>
     </widget>
     <widget class="QLineEdit" name="uangpembayaran">
-     <property name="geometry"><rect><x>24</x><y>456</y><width>382</width><height>34</height></rect></property>
-     <property name="placeholderText"><string>Masukkan nominal...</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>456</y>
+       <width>382</width>
+       <height>34</height>
+      </rect>
+     </property>
+     <property name="placeholderText">
+      <string>Masukkan nominal...</string>
+     </property>
     </widget>
-
-    <!-- KETERANGAN / KEMBALIAN -->
     <widget class="QLabel" name="label_20">
-     <property name="geometry"><rect><x>24</x><y>502</y><width>150</width><height>20</height></rect></property>
-     <property name="text"><string>Kembalian</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>502</y>
+       <width>150</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Kembalian</string>
+     </property>
     </widget>
     <widget class="QLineEdit" name="kembalian">
-     <property name="geometry"><rect><x>24</x><y>524</y><width>382</width><height>34</height></rect></property>
-     <property name="placeholderText"><string>Rp 0</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>524</y>
+       <width>382</width>
+       <height>34</height>
+      </rect>
+     </property>
+     <property name="placeholderText">
+      <string>Rp 0</string>
+     </property>
     </widget>
-
-    <!-- NAMA PEMESAN -->
     <widget class="QLabel" name="label_21">
-     <property name="geometry"><rect><x>24</x><y>570</y><width>150</width><height>20</height></rect></property>
-     <property name="text"><string>Nama Pemesan</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>570</y>
+       <width>150</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Nama Pemesan</string>
+     </property>
     </widget>
     <widget class="QLineEdit" name="pemesan">
-     <property name="geometry"><rect><x>24</x><y>592</y><width>382</width><height>34</height></rect></property>
-     <property name="placeholderText"><string>Nama pelanggan...</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>592</y>
+       <width>382</width>
+       <height>34</height>
+      </rect>
+     </property>
+     <property name="placeholderText">
+      <string>Nama pelanggan...</string>
+     </property>
     </widget>
-
-    <!-- JUMLAH ITEM & BAYAR -->
     <widget class="QLabel" name="label_22">
-     <property name="geometry"><rect><x>24</x><y>636</y><width>120</width><height>20</height></rect></property>
-     <property name="text"><string>Total Item</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>638</y>
+       <width>120</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Total Item</string>
+     </property>
     </widget>
     <widget class="QLineEdit" name="jumlah2">
-     <property name="geometry"><rect><x>24</x><y>656</y><width>200</width><height>34</height></rect></property>
-     <property name="placeholderText"><string>0</string></property>
+     <property name="geometry">
+      <rect>
+       <x>24</x>
+       <y>660</y>
+       <width>200</width>
+       <height>34</height>
+      </rect>
+     </property>
+     <property name="placeholderText">
+      <string>0</string>
+     </property>
     </widget>
-
-    <!-- hidden colon labels (kept for Python compat) -->
-    <widget class="QLabel" name="label_12"><property name="geometry"><rect><x>0</x><y>0</y><width>1</width><height>1</height></rect></property><property name="text"><string/></property></widget>
-    <widget class="QLabel" name="label_13"><property name="geometry"><rect><x>0</x><y>0</y><width>1</width><height>1</height></rect></property><property name="text"><string/></property></widget>
-    <widget class="QLabel" name="label_14"><property name="geometry"><rect><x>0</x><y>0</y><width>1</width><height>1</height></rect></property><property name="text"><string/></property></widget>
-    <widget class="QLabel" name="label_15"><property name="geometry"><rect><x>0</x><y>0</y><width>1</width><height>1</height></rect></property><property name="text"><string/></property></widget>
-
-    <!-- BAYAR BUTTON (lebar penuh, pojok kanan bawah panel) -->
     <widget class="QPushButton" name="bayar">
-     <property name="geometry"><rect><x>240</x><y>636</y><width>166</width><height>54</height></rect></property>
-     <property name="text"><string>💳  BAYAR</string></property>
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>648</y>
+       <width>166</width>
+       <height>54</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>💳  BAYAR</string>
+     </property>
     </widget>
    </widget>
-
-   <!-- ════ PANEL KANAN ════ -->
-
-   <!-- Label Daftar Menu -->
-   <widget class="QLabel" name="label_7">
-    <property name="geometry"><rect><x>470</x><y>20</y><width>200</width><height>30</height></rect></property>
-    <property name="text"><string>📋  Daftar Menu</string></property>
-   </widget>
-
-   <!-- Table Daftar Menu -->
-   <widget class="QTableWidget" name="table_1">
-    <property name="geometry"><rect><x>470</x><y>58</y><width>710</width><height>310</height></rect></property>
-    <column><property name="text"><string>Kategori</string></property></column>
-    <column><property name="text"><string>Nama</string></property></column>
-    <column><property name="text"><string>Harga</string></property></column>
-   </widget>
-
-   <!-- Label Keranjang -->
-   <widget class="QLabel" name="label_6">
-    <property name="geometry"><rect><x>470</x><y>382</y><width>200</width><height>30</height></rect></property>
-    <property name="text"><string>🛍  Keranjang Belanja</string></property>
-   </widget>
-
-   <!-- Table Keranjang -->
-   <widget class="QTableWidget" name="table_2">
-    <property name="geometry"><rect><x>470</x><y>420</y><width>710</width><height>248</height></rect></property>
-    <column><property name="text"><string>Kategori</string></property></column>
-    <column><property name="text"><string>Nama</string></property></column>
-    <column><property name="text"><string>Harga</string></property></column>
-    <column><property name="text"><string>Jumlah</string></property></column>
-    <column><property name="text"><string>Total</string></property></column>
-   </widget>
-
-   <!-- Action Buttons -->
-   <widget class="QPushButton" name="hapus">
-    <property name="geometry"><rect><x>470</x><y>682</y><width>130</width><height>36</height></rect></property>
-    <property name="text"><string>🗑  Hapus</string></property>
-   </widget>
-   <widget class="QPushButton" name="batal">
-    <property name="geometry"><rect><x>616</x><y>682</y><width>130</width><height>36</height></rect></property>
-    <property name="text"><string>↩  Batal</string></property>
-   </widget>
-   <widget class="QPushButton" name="keluar">
-    <property name="geometry"><rect><x>1050</x><y>682</y><width>130</width><height>36</height></rect></property>
-    <property name="text"><string>✕  Keluar</string></property>
-   </widget>
-
   </widget>
  </widget>
  <resources/>
