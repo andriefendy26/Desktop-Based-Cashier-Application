@@ -11,7 +11,126 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Data Pendapatan — Kasir</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+/* ─── Global ─── */
+QDialog, QWidget#widget_2 {
+    background-color: #0f1117;
+    color: #e2e8f0;
+    font-family: &quot;Segoe UI&quot;, sans-serif;
+    font-size: 13px;
+}
+
+/* ─── Labels ─── */
+QLabel {
+    color: #94a3b8;
+    font-size: 12px;
+    background: transparent;
+}
+
+QLabel#label_3 {
+    color: #f1f5f9;
+    font-size: 20px;
+    font-weight: 700;
+    background: transparent;
+}
+
+QLabel#label_9 {
+    color: #38bdf8;
+    font-size: 14px;
+    font-weight: 700;
+    background: transparent;
+}
+
+QLabel#Total {
+    color: #34d399;
+    font-size: 14px;
+    font-weight: 700;
+    background: transparent;
+}
+
+/* ─── Buttons ─── */
+QPushButton {
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+}
+
+QPushButton#keluar {
+    background-color: #dc2626;
+    color: #fff;
+    border: none;
+}
+QPushButton#keluar:hover { background-color: #ef4444; }
+QPushButton#keluar:pressed { background-color: #b91c1c; }
+
+/* ─── Table Widget ─── */
+QTableWidget {
+    background-color: #1a1f2e;
+    border: 1px solid #2d3548;
+    border-radius: 10px;
+    gridline-color: #222840;
+    color: #e2e8f0;
+    font-size: 13px;
+    selection-background-color: #1e3a5f;
+    selection-color: #e0f2fe;
+    outline: none;
+}
+
+QHeaderView::section {
+    background-color: #141824;
+    color: #38bdf8;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    border: none;
+    border-bottom: 2px solid #38bdf8;
+}
+
+QTableWidget::item {
+    padding: 8px 12px;
+    border-bottom: 1px solid #1e2436;
+}
+
+QTableWidget::item:selected {
+    background-color: #1e3a5f;
+    color: #e0f2fe;
+    border-radius: 4px;
+}
+
+QTableWidget::item:hover {
+    background-color: #1e2d45;
+}
+
+QScrollBar:vertical {
+    background: #141824;
+    width: 8px;
+    border-radius: 4px;
+}
+QScrollBar::handle:vertical {
+    background: #38bdf8;
+    border-radius: 4px;
+    min-height: 30px;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+
+QScrollBar:horizontal {
+    background: #141824;
+    height: 8px;
+    border-radius: 4px;
+}
+QScrollBar::handle:horizontal {
+    background: #38bdf8;
+    border-radius: 4px;
+}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
+   </string>
   </property>
   <widget class="QWidget" name="widget_2" native="true">
    <property name="geometry">
@@ -22,60 +141,28 @@
      <height>671</height>
     </rect>
    </property>
-   <property name="styleSheet">
-    <string notr="true">background-color: rgb(255, 255, 255);</string>
-   </property>
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>40</y>
-      <width>231</width>
-      <height>61</height>
+      <y>24</y>
+      <width>300</width>
+      <height>40</height>
      </rect>
     </property>
-    <property name="minimumSize">
-     <size>
-      <width>0</width>
-      <height>16</height>
-     </size>
-    </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;Data Pendapatan&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>📊  Data Pendapatan</string>
     </property>
    </widget>
    <widget class="QTableWidget" name="tableWidget_2">
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>100</y>
-      <width>861</width>
-      <height>451</height>
+      <y>78</y>
+      <width>876</width>
+      <height>480</height>
      </rect>
     </property>
-    <property name="styleSheet">
-     <string notr="true"/>
-    </property>
-    <row>
-     <property name="text">
-      <string/>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string/>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string/>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string/>
-     </property>
-    </row>
     <column>
      <property name="text">
       <string>Nama Pembeli</string>
@@ -95,43 +182,40 @@
    <widget class="QLabel" name="label_9">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>580</y>
-      <width>191</width>
-      <height>51</height>
+      <x>40</x>
+      <y>582</y>
+      <width>200</width>
+      <height>30</height>
      </rect>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;Total Pendapatan :&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>Total Pendapatan :</string>
     </property>
    </widget>
    <widget class="QLabel" name="Total">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>590</y>
-      <width>261</width>
-      <height>31</height>
+      <x>248</x>
+      <y>582</y>
+      <width>280</width>
+      <height>30</height>
      </rect>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;Rp 0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>Rp 0</string>
     </property>
    </widget>
    <widget class="QPushButton" name="keluar">
     <property name="geometry">
      <rect>
-      <x>780</x>
-      <y>600</y>
-      <width>93</width>
-      <height>28</height>
+      <x>776</x>
+      <y>576</y>
+      <width>130</width>
+      <height>36</height>
      </rect>
     </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 0, 0);</string>
-    </property>
     <property name="text">
-     <string>kembali</string>
+     <string>✕  Kembali</string>
     </property>
    </widget>
   </widget>
