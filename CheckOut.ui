@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
+    <width>1734</width>
     <height>859</height>
    </rect>
   </property>
@@ -93,6 +93,33 @@ QLineEdit#totalbayar, QLineEdit#kembalian {
     font-size: 14px;
 }
 
+/* ─── Search Bars ─── */
+QLineEdit#search_makanan {
+    background-color: #1e2235;
+    border: 1px solid #f97316;
+    border-radius: 8px;
+    padding: 5px 10px 5px 28px;
+    color: #fbd38d;
+    font-size: 12px;
+}
+QLineEdit#search_makanan:focus {
+    border: 1.5px solid #f97316;
+    background-color: #231a10;
+}
+
+QLineEdit#search_minuman {
+    background-color: #1a2420;
+    border: 1px solid #34d399;
+    border-radius: 8px;
+    padding: 5px 10px 5px 28px;
+    color: #6ee7b7;
+    font-size: 12px;
+}
+QLineEdit#search_minuman:focus {
+    border: 1.5px solid #34d399;
+    background-color: #132018;
+}
+
 /* ─── Buttons ─── */
 QPushButton {
     border-radius: 8px;
@@ -125,6 +152,14 @@ QPushButton#hapus {
     border: 1px solid #991b1b;
 }
 QPushButton#hapus:hover { background-color: #991b1b; }
+
+QPushButton#edit_item {
+    background-color: #78350f;
+    color: #fde68a;
+    border: 1px solid #b45309;
+}
+QPushButton#edit_item:hover { background-color: #b45309; }
+QPushButton#edit_item:pressed { background-color: #92400e; }
 
 QPushButton#batal {
     background-color: #374151;
@@ -165,13 +200,11 @@ QHeaderView::section {
     border-bottom: 2px solid #38bdf8;
 }
 
-/* Header makanan — oranye */
 QTableWidget#table_makanan QHeaderView::section {
     color: #f97316;
     border-bottom: 2px solid #f97316;
 }
 
-/* Header minuman — hijau */
 QTableWidget#table_minuman QHeaderView::section {
     color: #34d399;
     border-bottom: 2px solid #34d399;
@@ -215,7 +248,6 @@ QScrollBar::handle:horizontal {
 }
 QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
 
-/* ─── Separator ─── */
 QFrame#line, QFrame#line_2 {
     color: #2d3548;
     background-color: #2d3548;
@@ -227,7 +259,7 @@ QFrame#line, QFrame#line_2 {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1200</width>
+     <width>1741</width>
      <height>851</height>
     </rect>
    </property>
@@ -249,7 +281,7 @@ QFrame#line, QFrame#line_2 {
      <rect>
       <x>40</x>
       <y>56</y>
-      <width>200</width>
+      <width>160</width>
       <height>24</height>
      </rect>
     </property>
@@ -257,15 +289,33 @@ QFrame#line, QFrame#line_2 {
      <string>🍽  Makanan</string>
     </property>
    </widget>
+   <widget class="QLineEdit" name="search_makanan">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>50</y>
+      <width>251</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="placeholderText">
+     <string>🔍  Cari makanan...</string>
+    </property>
+   </widget>
    <widget class="QTableWidget" name="table_makanan">
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>84</y>
-      <width>621</width>
-      <height>240</height>
+      <y>88</y>
+      <width>581</width>
+      <height>351</height>
      </rect>
     </property>
+    <column>
+     <property name="text">
+      <string>ID</string>
+     </property>
+    </column>
     <column>
      <property name="text">
       <string>Kategori</string>
@@ -285,9 +335,9 @@ QFrame#line, QFrame#line_2 {
    <widget class="QLabel" name="lbl_minuman">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>334</y>
-      <width>200</width>
+      <x>50</x>
+      <y>450</y>
+      <width>160</width>
       <height>24</height>
      </rect>
     </property>
@@ -295,15 +345,33 @@ QFrame#line, QFrame#line_2 {
      <string>🥤  Minuman</string>
     </property>
    </widget>
+   <widget class="QLineEdit" name="search_minuman">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>450</y>
+      <width>251</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="placeholderText">
+     <string>🔍  Cari minuman...</string>
+    </property>
+   </widget>
    <widget class="QTableWidget" name="table_minuman">
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>362</y>
-      <width>621</width>
-      <height>200</height>
+      <y>490</y>
+      <width>581</width>
+      <height>281</height>
      </rect>
     </property>
+    <column>
+     <property name="text">
+      <string>ID</string>
+     </property>
+    </column>
     <column>
      <property name="text">
       <string>Kategori</string>
@@ -323,8 +391,8 @@ QFrame#line, QFrame#line_2 {
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>570</y>
+      <x>640</x>
+      <y>60</y>
       <width>250</width>
       <height>30</height>
      </rect>
@@ -336,10 +404,10 @@ QFrame#line, QFrame#line_2 {
    <widget class="QTableWidget" name="table_2">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>604</y>
+      <x>640</x>
+      <y>90</y>
       <width>621</width>
-      <height>180</height>
+      <height>681</height>
      </rect>
     </property>
     <column>
@@ -371,9 +439,9 @@ QFrame#line, QFrame#line_2 {
    <widget class="QPushButton" name="hapus">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>796</y>
-      <width>130</width>
+      <x>1130</x>
+      <y>780</y>
+      <width>120</width>
       <height>36</height>
      </rect>
     </property>
@@ -384,9 +452,9 @@ QFrame#line, QFrame#line_2 {
    <widget class="QPushButton" name="batal">
     <property name="geometry">
      <rect>
-      <x>180</x>
-      <y>796</y>
-      <width>130</width>
+      <x>870</x>
+      <y>780</y>
+      <width>120</width>
       <height>36</height>
      </rect>
     </property>
@@ -394,24 +462,11 @@ QFrame#line, QFrame#line_2 {
      <string>↩  Batal</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="keluar">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>796</y>
-      <width>130</width>
-      <height>36</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>✕  Keluar</string>
-    </property>
-   </widget>
    <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
-      <x>730</x>
-      <y>20</y>
+      <x>1290</x>
+      <y>10</y>
       <width>430</width>
       <height>811</height>
      </rect>
@@ -708,6 +763,32 @@ QFrame#line, QFrame#line_2 {
       <string>💳  BAYAR</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="keluar">
+     <property name="geometry">
+      <rect>
+       <x>280</x>
+       <y>20</y>
+       <width>130</width>
+       <height>36</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>✕  Keluar</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QPushButton" name="edit_item">
+    <property name="geometry">
+     <rect>
+      <x>1000</x>
+      <y>780</y>
+      <width>120</width>
+      <height>36</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>✏  Edit</string>
+    </property>
    </widget>
   </widget>
  </widget>
