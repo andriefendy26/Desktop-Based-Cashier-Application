@@ -511,6 +511,7 @@ class kasir(QDialog):
             return
 
         if payment >= total:
+            # row = self.table_2.currentRow()
             change = payment - total
             self.kembalian.setText(f"{change:.0f}")
             try:
@@ -520,6 +521,7 @@ class kasir(QDialog):
                     "INSERT INTO laporan (nama, jumlah, total) VALUES (%s, %s, %s)",
                     (namapembeli, self.jumlah2.text(), total_text)
                 )
+                # self.clearform2()
                 conn.commit()
                 curr.close()
                 conn.close()
