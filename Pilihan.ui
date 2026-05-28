@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>480</width>
-    <height>580</height>
+    <height>640</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -52,13 +52,34 @@ QLabel#label_icon {
 }
 
 /* ── Divider ── */
-QFrame#divider {
+QFrame#divider, QFrame#divider2, QFrame#divider3 {
     background-color: #1e2d3d;
     border: none;
     max-height: 1px;
 }
 
-/* ── Menu Buttons ── */
+/* ── Checkout Button ── */
+QPushButton#Checkout {
+    background-color: #1e2a3a;
+    color: #e2e8f0;
+    border: 1.5px solid #2d3f55;
+    border-radius: 14px;
+    font-family: "Segoe UI";
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0px 20px;
+    text-align: left;
+}
+QPushButton#Checkout:hover {
+    background-color: #2a1f3a;
+    border-color: #a78bfa;
+    color: #a78bfa;
+}
+QPushButton#Checkout:pressed {
+    background-color: #1a0f2e;
+}
+
+/* ── Menu Button ── */
 QPushButton#Menu {
     background-color: #1e2a3a;
     color: #e2e8f0;
@@ -79,6 +100,7 @@ QPushButton#Menu:pressed {
     background-color: #0c2a47;
 }
 
+/* ── Laporan Button ── */
 QPushButton#Lprn {
     background-color: #1e2a3a;
     color: #e2e8f0;
@@ -122,13 +144,13 @@ QPushButton#logout:pressed {
 
   <widget class="QWidget" name="widget" native="true">
    <property name="geometry">
-    <rect><x>0</x><y>0</y><width>480</width><height>580</height></rect>
+    <rect><x>0</x><y>0</y><width>480</width><height>640</height></rect>
    </property>
 
    <!-- ── Card ── -->
    <widget class="QFrame" name="card">
     <property name="geometry">
-     <rect><x>28</x><y>28</y><width>424</width><height>524</height></rect>
+     <rect><x>28</x><y>28</y><width>424</width><height>584</height></rect>
     </property>
     <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
     <property name="frameShadow"><enum>QFrame::Raised</enum></property>
@@ -154,30 +176,53 @@ QPushButton#logout:pressed {
      <property name="alignment"><set>Qt::AlignCenter</set></property>
     </widget>
 
-    <!-- Divider -->
+    <!-- Divider 1 -->
     <widget class="QFrame" name="divider">
      <property name="geometry"><rect><x>24</x><y>170</y><width>376</width><height>2</height></rect></property>
      <property name="frameShape"><enum>QFrame::HLine</enum></property>
      <property name="frameShadow"><enum>QFrame::Plain</enum></property>
     </widget>
 
-    <!-- Button: Daftar Menu -->
-    <widget class="QPushButton" name="Menu">
-     <property name="geometry"><rect><x>24</x><y>196</y><width>376</width><height>80</height></rect></property>
-     <property name="text"><string>  🍽️   Daftar Menu</string></property>
-     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
-    </widget>
-
-    <!-- Button: Laporan Pendapatan -->
-    <widget class="QPushButton" name="Lprn">
-     <property name="geometry"><rect><x>24</x><y>296</y><width>376</width><height>80</height></rect></property>
-     <property name="text"><string>  📊   Laporan Pendapatan</string></property>
+    <!-- Button: Check Out -->
+    <widget class="QPushButton" name="Checkout">
+     <property name="geometry"><rect><x>24</x><y>188</y><width>376</width><height>78</height></rect></property>
+     <property name="text"><string>  🛒   Check Out</string></property>
      <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
     </widget>
 
     <!-- Divider 2 -->
     <widget class="QFrame" name="divider2">
-     <property name="geometry"><rect><x>24</x><y>394</y><width>376</width><height>2</height></rect></property>
+     <property name="geometry"><rect><x>24</x><y>280</y><width>376</width><height>2</height></rect></property>
+     <property name="frameShape"><enum>QFrame::HLine</enum></property>
+     <property name="frameShadow"><enum>QFrame::Plain</enum></property>
+     <property name="styleSheet"><string notr="true">background-color: #1e2d3d; border: none; max-height: 1px;</string></property>
+    </widget>
+
+    <!-- Button: Daftar Menu -->
+    <widget class="QPushButton" name="Menu">
+     <property name="geometry"><rect><x>24</x><y>294</y><width>376</width><height>78</height></rect></property>
+     <property name="text"><string>  🍽️   Daftar Menu</string></property>
+     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+    </widget>
+
+    <!-- Divider 3 -->
+    <widget class="QFrame" name="divider3">
+     <property name="geometry"><rect><x>24</x><y>386</y><width>376</width><height>2</height></rect></property>
+     <property name="frameShape"><enum>QFrame::HLine</enum></property>
+     <property name="frameShadow"><enum>QFrame::Plain</enum></property>
+     <property name="styleSheet"><string notr="true">background-color: #1e2d3d; border: none; max-height: 1px;</string></property>
+    </widget>
+
+    <!-- Button: Laporan Pendapatan -->
+    <widget class="QPushButton" name="Lprn">
+     <property name="geometry"><rect><x>24</x><y>400</y><width>376</width><height>78</height></rect></property>
+     <property name="text"><string>  📊   Laporan Pendapatan</string></property>
+     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+    </widget>
+
+    <!-- Divider 4 -->
+    <widget class="QFrame" name="divider4">
+     <property name="geometry"><rect><x>24</x><y>492</y><width>376</width><height>2</height></rect></property>
      <property name="frameShape"><enum>QFrame::HLine</enum></property>
      <property name="frameShadow"><enum>QFrame::Plain</enum></property>
      <property name="styleSheet"><string notr="true">background-color: #1e2d3d; border: none; max-height: 1px;</string></property>
@@ -185,7 +230,7 @@ QPushButton#logout:pressed {
 
     <!-- Button: Logout -->
     <widget class="QPushButton" name="logout">
-     <property name="geometry"><rect><x>24</x><y>412</y><width>376</width><height>52</height></rect></property>
+     <property name="geometry"><rect><x>24</x><y>510</y><width>376</width><height>52</height></rect></property>
      <property name="text"><string>✕   Log Out</string></property>
      <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
     </widget>
