@@ -702,6 +702,8 @@ class DftrMenu(QDialog):
         super().__init__()
         uic.loadUi("DaftarMenu.ui", self)
         self.center()
+        self._simpan_mode = 'baru'   # tambahkan
+        self._edit_mode = 'view'     # tambahkan
         self.tombol()
         self.tabelWidtg()
         self.loaddata()
@@ -765,15 +767,15 @@ class DftrMenu(QDialog):
         self.textHarga.setText(self.tableWidget.item(row, 3).text())
 
     def edittext(self):
-        cb = self.edit.text()
-        if cb == 'edit tabel':
+        if self._edit_mode == 'view':
             self.activeText(True)
             self.clearform()
-            self.edit.setText('simpan')
-        elif cb == 'simpan':
+            self.edit.setText('💾  Simpan')
+            self._edit_mode = 'save'
+        elif self._edit_mode == 'save':
             idMenu = self.textIdMenu.text()
-            if len(idMenu) > 5:
-                QMessageBox.warning(self, "Input Error", "ID menu tidak boleh lebih dari 5 karakter.")
+            if len(idMenu) > 10:
+                QMessageBox.warning(self, "Input Error", "ID menu tidak boleh lebih dari 10 karakter.")
                 return
             conn = get_connection()
             curr = conn.cursor()
@@ -794,7 +796,8 @@ class DftrMenu(QDialog):
             self.loaddata()
             self.activeText(False)
             self.clearform()
-            self.edit.setText('edit tabel')
+            self.edit.setText('✏  Edit')
+            self._edit_mode = 'view'
 
     def hapusData(self):
         idMenu = self.textIdMenu.text()
@@ -810,28 +813,70 @@ class DftrMenu(QDialog):
         self.loaddata()
 
     def batals(self):
-        ed = self.edit.text()
-        cb = self.simpan.text()
-        if cb == 'simpan':
-            self.simpan.setText('baru')
+        if self._simpan_mode == 'save':
+            self.simpan.setText('＋  Baru')
+            self._simpan_mode = 'baru'
             self.clearform()
             self.activeText(False)
-        elif ed == 'simpan':
-            self.edit.setText('edit tabel')
+        elif self._edit_mode == 'save':
+            self.edit.setText('✏  Edit')
+            self._edit_mode = 'view'
             self.clearform()
             self.activeText(False)
+    def generate_next_id(self):
+        """Ambil ID terakhir dari DB, lalu buat ID berikutnya.
+        Mendukung format seperti 'M001', 'MK01', atau angka murni '001'."""
+        import re
+        conn = get_connection()
+        curr = conn.cursor()
+        curr.execute("SELECT idMenu FROM tbbarang")
+        rows = curr.fetchall()
+        curr.close()
+        conn.close()
+
+        max_num = 0
+        prefix  = ''
+        width   = 3   # default lebar angka, misal 001, 002, dst
+
+        for (idm,) in rows:
+            idm = str(idm)
+            m = re.match(r'^([A-Za-z]*)(\d+)$', idm)
+            if m:
+                p, num = m.group(1), m.group(2)
+                n = int(num)
+                if n > max_num:
+                    max_num = n
+                    prefix  = p
+                    width   = len(num)
+
+        next_num = max_num + 1
+        new_id   = f"{prefix}{next_num:0{width}d}"
+
+        # Jaga-jaga kalau kolom idMenu maksimal 5 karakter
+        if len(new_id) > 5:
+            new_id = new_id[-5:]
+
+        return new_id
 
     def simpandata(self):
-        cb = self.simpan.text()
-        if cb == 'baru':
+        if self._simpan_mode == 'baru':
             self.activeText(True)
             self.clearform()
-            self.simpan.setText('simpan')
-        elif cb == 'simpan':
+            self.textIdMenu.setText(self.generate_next_id())   # <-- auto generate di sini
+            self.simpan.setText('💾  Simpan')
+            self._simpan_mode = 'save'
+        elif self._simpan_mode == 'save':
             idMenu = self.textIdMenu.text()
-            if len(idMenu) > 5:
-                QMessageBox.warning(self, "Input Error", "ID menu tidak boleh lebih dari 5 karakter.")
+            if not idMenu:
+                QMessageBox.warning(self, "Perhatian", "ID Menu gagal dibuat, coba lagi!")
                 return
+            if not self.textMenu.text().strip():
+                QMessageBox.warning(self, "Perhatian", "Nama menu tidak boleh kosong!")
+                return
+            if not self.textHarga.text().strip():
+                QMessageBox.warning(self, "Perhatian", "Harga tidak boleh kosong!")
+                return
+
             tipeMenu = self.cbKategori.currentText()
             namaMenu = self.textMenu.text()
             hargaa   = self.textHarga.text()
@@ -845,15 +890,24 @@ class DftrMenu(QDialog):
                 conn.commit()
             except mysql.connector.DataError as e:
                 QMessageBox.critical(self, "Database Error", f"Gagal simpan data: {e}")
+                return
+            except mysql.connector.IntegrityError:
+                # Kalau ID bentrok (race condition), coba generate ulang sekali
+                QMessageBox.warning(self, "Perhatian", "ID sudah dipakai, mencoba ID baru...")
+                self.textIdMenu.setText(self.generate_next_id())
+                return
             finally:
                 try:
                     curr.close()
                     conn.close()
                 except Exception:
                     pass
+
             self.loaddata()
             self.activeText(False)
             self.clearform()
+            self.simpan.setText('＋  Baru')
+            self._simpan_mode = 'baru'
 
     def kembali(self):
         self.openkasir = Pilihan()
