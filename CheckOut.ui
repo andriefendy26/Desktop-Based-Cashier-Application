@@ -331,6 +331,11 @@ QFrame#line, QFrame#line_2 {
       <string>Harga</string>
      </property>
     </column>
+    <column>
+     <property name="text">
+      <string>Stok</string>
+     </property>
+    </column>
    </widget>
    <widget class="QLabel" name="lbl_minuman">
     <property name="geometry">
@@ -385,6 +390,11 @@ QFrame#line, QFrame#line_2 {
     <column>
      <property name="text">
       <string>Harga</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Stok</string>
      </property>
     </column>
    </widget>
