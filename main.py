@@ -9,6 +9,11 @@ from PyQt5.QtWidgets import (QVBoxLayout, QHBoxLayout,
 import sys
 from datetime import datetime, time
 import mysql.connector
+import matplotlib
+matplotlib.use('Qt5Agg')
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.dates as mdates
 
 
 # ─────────────────────────────────────────────
@@ -1085,15 +1090,112 @@ class Laporan(QDialog):
         self.center()
         self._buat_filter_tanggal()
         self.tombol()
+        self._chart_dari = None
+        self._chart_sampai = None
+        self._setup_chart()
         self.loaddata2()
         self.tabelWidtg()
         self.tot()
+        self.cb_filter.currentTextChanged.connect(self._update_chart)
+        self._update_chart()
 
     def center(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
+
+    def _setup_chart(self):
+        self.figure = Figure(figsize=(4, 4), dpi=100)
+        self.figure.patch.set_facecolor('#1a1f2e')
+        self.canvas = FigureCanvas(self.figure)
+        self.ax = self.figure.add_subplot(111)
+        self.ax.set_facecolor('#1a1f2e')
+        self.ax.tick_params(colors='#94a3b8', labelsize=8)
+        self.ax.xaxis.label.set_color('#94a3b8')
+        self.ax.yaxis.label.set_color('#94a3b8')
+        self.ax.title.set_color('#f1f5f9')
+        for spine in self.ax.spines.values():
+            spine.set_edgecolor('#2d3548')
+        layout = QVBoxLayout(self.frame_chart)
+        layout.setContentsMargins(4, 4, 4, 4)
+        layout.addWidget(self.canvas)
+
+    def _get_chart_data(self):
+        conn = get_connection()
+        curr = conn.cursor()
+        try:
+            if self._chart_dari and self._chart_sampai:
+                curr.execute(
+                    "SELECT tanggal, total FROM laporan WHERE tanggal BETWEEN %s AND %s ORDER BY tanggal ASC",
+                    (self._chart_dari, self._chart_sampai)
+                )
+            else:
+                curr.execute("SELECT tanggal, total FROM laporan ORDER BY tanggal ASC")
+            return curr.fetchall()
+        finally:
+            curr.close()
+            conn.close()
+
+    def _update_chart(self):
+        filter_type = self.cb_filter.currentText()
+        data = self._get_chart_data()
+        self.ax.clear()
+        self.ax.set_facecolor('#1a1f2e')
+        for spine in self.ax.spines.values():
+            spine.set_edgecolor('#2d3548')
+        self.ax.tick_params(colors='#94a3b8', labelsize=8)
+        self.ax.xaxis.label.set_color('#94a3b8')
+        self.ax.yaxis.label.set_color('#94a3b8')
+        self.ax.title.set_color('#f1f5f9')
+
+        if not data:
+            self.ax.text(0.5, 0.5, 'Tidak ada data', transform=self.ax.transAxes,
+                         ha='center', va='center', color='#94a3b8', fontsize=10)
+            self.canvas.draw()
+            return
+
+        from collections import defaultdict
+        if filter_type == "Harian":
+            groups = defaultdict(float)
+            for tanggal, total in data:
+                key = tanggal.strftime("%d-%m-%Y") if hasattr(tanggal, 'strftime') else str(tanggal)[:10]
+                groups[key] += float(total)
+            labels = list(groups.keys())
+            values = list(groups.values())
+            self.ax.bar(labels, values, color='#38bdf8')
+            self.ax.set_title("Pendapatan Harian", fontsize=10, fontweight='bold')
+            self.ax.set_ylabel("Total (Rp)", fontsize=9)
+            self.ax.tick_params(axis='x', rotation=45, labelsize=7)
+            self.figure.tight_layout()
+
+        elif filter_type == "Bulanan":
+            groups = defaultdict(float)
+            for tanggal, total in data:
+                key = tanggal.strftime("%m-%Y") if hasattr(tanggal, 'strftime') else str(tanggal)[:7]
+                groups[key] += float(total)
+            labels = sorted(groups.keys())
+            values = [groups[k] for k in labels]
+            self.ax.bar(labels, values, color='#34d399')
+            self.ax.set_title("Pendapatan Bulanan", fontsize=10, fontweight='bold')
+            self.ax.set_ylabel("Total (Rp)", fontsize=9)
+            self.ax.tick_params(axis='x', rotation=45, labelsize=8)
+            self.figure.tight_layout()
+
+        else:
+            groups = defaultdict(float)
+            for tanggal, total in data:
+                key = str(tanggal.year) if hasattr(tanggal, 'year') else str(tanggal)[:4]
+                groups[key] += float(total)
+            labels = sorted(groups.keys())
+            values = [groups[k] for k in labels]
+            self.ax.bar(labels, values, color='#f97316')
+            self.ax.set_title("Pendapatan Tahunan", fontsize=10, fontweight='bold')
+            self.ax.set_ylabel("Total (Rp)", fontsize=9)
+            self.ax.tick_params(axis='x', rotation=0, labelsize=9)
+            self.figure.tight_layout()
+
+        self.canvas.draw()
 
     def _buat_filter_tanggal(self):
         """Tambahkan kontrol filter tanggal secara dinamis (tidak perlu edit Data.ui).
@@ -1170,14 +1272,20 @@ class Laporan(QDialog):
     def terapkan_filter(self):
         dari    = self.dateDari.date().toString("yyyy-MM-dd") + " 00:00:00"
         sampai  = self.dateSampai.date().toString("yyyy-MM-dd") + " 23:59:59"
+        self._chart_dari = dari
+        self._chart_sampai = sampai
         self.loaddata2(dari, sampai)
         self.tot(dari, sampai)
+        self._update_chart()
 
     def reset_filter(self):
         self.dateDari.setDate(QDate.currentDate().addMonths(-1))
         self.dateSampai.setDate(QDate.currentDate())
+        self._chart_dari = None
+        self._chart_sampai = None
         self.loaddata2()
         self.tot()
+        self._update_chart()
 
     def loaddata2(self, dari=None, sampai=None):
         conn = get_connection()

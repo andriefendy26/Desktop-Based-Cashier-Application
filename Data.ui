@@ -154,31 +154,85 @@ QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
      <string>📊  Data Pendapatan</string>
     </property>
    </widget>
-   <widget class="QTableWidget" name="tableWidget_2">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>78</y>
-      <width>876</width>
-      <height>480</height>
-     </rect>
-    </property>
-    <column>
-     <property name="text">
-      <string>Nama Pembeli</string>
+    <widget class="QTableWidget" name="tableWidget_2">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>78</y>
+       <width>550</width>
+       <height>480</height>
+      </rect>
      </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Jumlah</string>
+     <column>
+      <property name="text">
+       <string>Nama Pembeli</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Jumlah</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Total Pembelian</string>
+      </property>
+     </column>
+    </widget>
+    <widget class="QFrame" name="frame_chart">
+     <property name="geometry">
+      <rect>
+       <x>600</x>
+       <y>78</y>
+       <width>310</width>
+       <height>480</height>
+      </rect>
      </property>
-    </column>
-    <column>
-     <property name="text">
-      <string>Total Pembelian</string>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
      </property>
-    </column>
-   </widget>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_filter">
+     <property name="geometry">
+      <rect>
+       <x>600</x>
+       <y>56</y>
+       <width>120</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Filter Grafik:</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cb_filter">
+     <property name="geometry">
+      <rect>
+       <x>720</x>
+       <y>52</y>
+       <width>190</width>
+       <height>28</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>Harian</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Bulanan</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Tahunan</string>
+      </property>
+     </item>
+    </widget>
    <widget class="QLabel" name="label_9">
     <property name="geometry">
      <rect>
