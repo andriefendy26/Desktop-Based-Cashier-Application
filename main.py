@@ -726,7 +726,7 @@ class kasir(QDialog):
         kembali_val = bayar_val - total_val
 
         waktu = waktu_transaksi or datetime.now()
-        waktu_str = waktu.strftime("%d-%m-%Y %H:%M:%S")
+        waktu_str = waktu.strftime("%d-%m-%Y %H:%M")
 
         y = pt(6)
 
