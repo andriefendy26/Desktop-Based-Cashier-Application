@@ -178,6 +178,11 @@ QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
        <string>Total Pembelian</string>
       </property>
      </column>
+    <column>
+     <property name="text">
+      <string>Tanggal</string>
+     </property>
+    </column>
     </widget>
     <widget class="QFrame" name="frame_chart">
      <property name="geometry">

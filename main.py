@@ -1210,6 +1210,8 @@ class Laporan(QDialog):
     def __init__(self):
         super().__init__()
         uic.loadUi("Data.ui", self)
+        available = QDesktopWidget().availableGeometry()
+        self.resize(min(936, available.width()), min(668, available.height()))
         self.center()
         self._buat_filter_tanggal()
         self.tombol()
@@ -1221,6 +1223,11 @@ class Laporan(QDialog):
         self.tot()
         self.cb_filter.currentTextChanged.connect(self._update_chart)
         self._update_chart()
+        _setup_responsive_scaling(self, self.widget_2, 941, 671)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        _apply_responsive_scaling(self)
 
     def center(self):
         qr = self.frameGeometry()
@@ -1527,16 +1534,21 @@ class Laporan(QDialog):
         conn.close()
 
         idx_tanggal = col_names.index('tanggal') if 'tanggal' in col_names else None
+        idx_nama = col_names.index('nama') if 'nama' in col_names else 1
+        idx_jumlah = col_names.index('jumlah') if 'jumlah' in col_names else 2
+        idx_total = col_names.index('total') if 'total' in col_names else 3
 
         self.tableWidget_2.setRowCount(len(result))
         for row, item in enumerate(result):
-            self.tableWidget_2.setItem(row, 0, QtWidgets.QTableWidgetItem(str(item[1])))
-            self.tableWidget_2.setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[2])))
-            self.tableWidget_2.setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[3])))
-            if idx_tanggal is not None and self.tableWidget_2.columnCount() > 3:
-                waktu = item[idx_tanggal]
-                waktu_str = waktu.strftime("%d-%m-%Y %H:%M") if hasattr(waktu, 'strftime') else str(waktu)
-                self.tableWidget_2.setItem(row, 3, QtWidgets.QTableWidgetItem(waktu_str))
+            self.tableWidget_2.setItem(row, 0, QtWidgets.QTableWidgetItem(str(item[idx_nama])))
+            self.tableWidget_2.setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[idx_jumlah])))
+            self.tableWidget_2.setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[idx_total])))
+            waktu = item[idx_tanggal] if idx_tanggal is not None else None
+            waktu_str = (
+                waktu.strftime("%d-%m-%Y %H:%M")
+                if hasattr(waktu, 'strftime') else str(waktu or "-")
+            )
+            self.tableWidget_2.setItem(row, 3, QtWidgets.QTableWidgetItem(waktu_str))
 
     def tot(self, dari=None, sampai=None):
         tota = 0
