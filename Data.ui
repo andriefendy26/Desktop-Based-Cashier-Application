@@ -224,7 +224,7 @@ QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
      </item>
      <item>
       <property name="text">
-       <string>Bulanan</string>
+    <string>Mingguan</string>
       </property>
      </item>
      <item>

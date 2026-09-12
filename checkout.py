@@ -171,6 +171,7 @@ class lognin(QDialog):
             print("Login.ui sukses")
             self.center()
             self.masuk.clicked.connect(self.loginfungsion)
+            self.toggle_password.clicked.connect(self.toggle_password_visibility)
         except Exception as e:
             print(f"Error loading UI: {e}")
             raise
@@ -182,20 +183,45 @@ class lognin(QDialog):
         self.move(qr.topLeft())
 
     def loginfungsion(self):
-        username = self.emailfield.text()
+        username = self.emailfield.text().strip()
         password = self.passwordfield.text()
+        self.error.clear()
+
+        if not username:
+            self.error.setText("Username wajib diisi")
+            self.emailfield.setFocus()
+            return
+        if not password:
+            self.error.setText("Password wajib diisi")
+            self.passwordfield.setFocus()
+            return
+
         conn = get_connection()
         curr = conn.cursor()
-        curr.execute("SELECT * FROM auth WHERE username=%s AND pass=%s", (username, password))
+        curr.execute("SELECT pass FROM auth WHERE username=%s", (username,))
         user = curr.fetchone()
         curr.close()
         conn.close()
-        if user is not None:
+
+        if user is None:
+            self.error.setText("Username tidak ditemukan")
+        elif user[0] != password:
+            self.error.setText("Password salah")
+            self.passwordfield.selectAll()
+            self.passwordfield.setFocus()
+        else:
             print("Login berhasil!")
             self.masukkasir()
+
+    def toggle_password_visibility(self):
+        if self.passwordfield.echoMode() == QtWidgets.QLineEdit.Password:
+            self.passwordfield.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.toggle_password.setText("Hide")
+            self.toggle_password.setToolTip("Sembunyikan password")
         else:
-            print("Login gagal: Akun tidak ditemukan.")
-            self.error.setText("Masukkan akun yang benar!")
+            self.passwordfield.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.toggle_password.setText("Show")
+            self.toggle_password.setToolTip("Tampilkan password")
 
     def masukkasir(self):
         self.openkasir = kasir()

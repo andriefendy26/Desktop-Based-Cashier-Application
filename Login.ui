@@ -74,6 +74,24 @@ QLineEdit::placeholder {
     color: #475569;
 }
 
+QLineEdit#passwordfield {
+    padding-right: 62px;
+}
+
+QPushButton#toggle_password {
+    background-color: transparent;
+    color: #38bdf8;
+    border: none;
+    font-family: "Segoe UI";
+    font-size: 11px;
+    font-weight: 700;
+    padding: 0;
+}
+
+QPushButton#toggle_password:hover {
+    color: #7dd3fc;
+}
+
 QPushButton#masuk {
     background-color: #74e90e;
     color: #ffffff;
@@ -164,6 +182,14 @@ QFrame#card {
      <property name="placeholderText"><string>Masukkan password...</string></property>
      <property name="echoMode"><enum>QLineEdit::Password</enum></property>
      <property name="text"><string/></property>
+    </widget>
+
+    <!-- Show/hide password -->
+    <widget class="QPushButton" name="toggle_password">
+     <property name="geometry"><rect><x>278</x><y>246</y><width>58</width><height>42</height></rect></property>
+     <property name="text"><string>Show</string></property>
+     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+     <property name="toolTip"><string>Tampilkan password</string></property>
     </widget>
 
     <!-- Error label -->

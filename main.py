@@ -16,6 +16,46 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.dates as mdates
 
 
+def _setup_responsive_scaling(window, content, base_width, base_height):
+    """Capture the fixed UI geometry so it can scale with the dialog."""
+    nodes = {content: (content, content.geometry())}
+    for child in content.findChildren(QtWidgets.QWidget):
+        if child.objectName() and not child.objectName().startswith('qt_'):
+            nodes[child] = (child, child.geometry())
+    window._responsive_content = content
+    window._responsive_base_size = (base_width, base_height)
+    window._responsive_nodes = nodes
+    _apply_responsive_scaling(window)
+
+
+def _apply_responsive_scaling(window):
+    content = getattr(window, '_responsive_content', None)
+    nodes = getattr(window, '_responsive_nodes', None)
+    if content is None or nodes is None:
+        return
+
+    base_width, base_height = window._responsive_base_size
+    scale = min(window.width() / base_width, window.height() / base_height)
+    scale = max(scale, 0.25)
+    content_width = max(1, round(base_width * scale))
+    content_height = max(1, round(base_height * scale))
+    content_x = max(0, (window.width() - content_width) // 2)
+    content_y = max(0, (window.height() - content_height) // 2)
+
+    content.setGeometry(content_x, content_y, content_width, content_height)
+    ordered_nodes = sorted(
+        (entry for widget, entry in nodes.items() if widget is not content),
+        key=lambda entry: entry[0].parentWidget().objectName().count('_')
+    )
+    for widget, geometry in ordered_nodes:
+        widget.setGeometry(
+            round(geometry.x() * scale),
+            round(geometry.y() * scale),
+            max(1, round(geometry.width() * scale)),
+            max(1, round(geometry.height() * scale)),
+        )
+
+
 # ─────────────────────────────────────────────
 #  DATABASE CONNECTION
 # ─────────────────────────────────────────────
@@ -192,6 +232,7 @@ class login(QDialog):
         uic.loadUi("Login.ui", self)
         self.center()
         self.masuk.clicked.connect(self.loginfungsion)
+        self.toggle_password.clicked.connect(self.toggle_password_visibility)
 
     def center(self):
         qr = self.frameGeometry()
@@ -200,19 +241,45 @@ class login(QDialog):
         self.move(qr.topLeft())
 
     def loginfungsion(self):
-        username = self.emailfield.text()
+        username = self.emailfield.text().strip()
         password = self.passwordfield.text()
+        self.error.clear()
+
+        if not username:
+            self.error.setText("Username wajib diisi")
+            self.emailfield.setFocus()
+            return
+        if not password:
+            self.error.setText("Password wajib diisi")
+            self.passwordfield.setFocus()
+            return
+
         conn = get_connection()
         curr = conn.cursor()
-        curr.execute("SELECT * FROM auth WHERE username=%s AND pass=%s", (username, password))
+        curr.execute("SELECT pass FROM auth WHERE username=%s", (username,))
         user = curr.fetchone()
         curr.close()
         conn.close()
-        if user:
+
+        if user is None:
+            self.error.setText("Username tidak ditemukan")
+        elif user[0] != password:
+            self.error.setText("Password salah")
+            self.passwordfield.selectAll()
+            self.passwordfield.setFocus()
+        else:
             self.masukkasir()
             QMessageBox.information(self, 'Alert', 'Login berhasil')
+
+    def toggle_password_visibility(self):
+        if self.passwordfield.echoMode() == QtWidgets.QLineEdit.Password:
+            self.passwordfield.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.toggle_password.setText("Hide")
+            self.toggle_password.setToolTip("Sembunyikan password")
         else:
-            self.error.setText("Masukkan akun yang benar")
+            self.passwordfield.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.toggle_password.setText("Show")
+            self.toggle_password.setToolTip("Tampilkan password")
 
     def masukkasir(self):
         self.openkasir = Pilihan()
@@ -312,6 +379,9 @@ class kasir(QDialog):
     def __init__(self, parent_pilihan=None):
         super().__init__()
         uic.loadUi("CheckOut.ui", self)
+        available = QDesktopWidget().availableGeometry()
+        self.resize(min(1734, available.width()), min(859, available.height()))
+        _setup_responsive_scaling(self, self.widget, 1741, 851)
         self.center()
         self.setWindowTitle("Check Out — Kasir")
 
@@ -341,6 +411,10 @@ class kasir(QDialog):
         self.activeText(False)
         self.tableWidgt()
         self.loaddata()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        _apply_responsive_scaling(self)
 
     def center(self):
         qr = self.frameGeometry()
@@ -886,6 +960,9 @@ class DftrMenu(QDialog):
     def __init__(self):
         super().__init__()
         uic.loadUi("DaftarMenu.ui", self)
+        available = QDesktopWidget().availableGeometry()
+        self.resize(min(980, available.width()), min(660, available.height()))
+        _setup_responsive_scaling(self, self.widget, 980, 660)
         self.center()
         self._simpan_mode = 'baru'   # tambahkan
         self._edit_mode = 'view'     # tambahkan
@@ -893,6 +970,10 @@ class DftrMenu(QDialog):
         self.tabelWidtg()
         self.loaddata()
         self.activeText(False)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        _apply_responsive_scaling(self)
 
     def center(self):
         qr = self.frameGeometry()
@@ -1211,15 +1292,15 @@ class Laporan(QDialog):
             self.ax.tick_params(axis='x', rotation=45, labelsize=7)
             self.figure.tight_layout()
 
-        elif filter_type == "Bulanan":
+        elif filter_type == "Mingguan":
             groups = defaultdict(float)
             for tanggal, total in data:
-                key = tanggal.strftime("%m-%Y") if hasattr(tanggal, 'strftime') else str(tanggal)[:7]
+                key = tanggal.strftime("Minggu %V, %Y") if hasattr(tanggal, 'strftime') else str(tanggal)[:10]
                 groups[key] += float(total)
             labels = sorted(groups.keys())
             values = [groups[k] for k in labels]
             self.ax.bar(labels, values, color='#34d399')
-            self.ax.set_title("Pendapatan Bulanan", fontsize=10, fontweight='bold')
+            self.ax.set_title("Pendapatan Mingguan", fontsize=10, fontweight='bold')
             self.ax.set_ylabel("Total (Rp)", fontsize=9)
             self.ax.tick_params(axis='x', rotation=45, labelsize=8)
             self.figure.tight_layout()
@@ -1254,6 +1335,7 @@ class Laporan(QDialog):
 
         self.btnFilter = QPushButton("🔍  Filter", self)
         self.btnReset = QPushButton("↩  Reset", self)
+        self.btnCetak = QPushButton("🖨  Cetak", self)
 
         style_datepicker = """
             QDateEdit {
@@ -1266,7 +1348,7 @@ class Laporan(QDialog):
             }
             QPushButton:hover { background-color: #2563eb; }
         """
-        for w in (self.dateDari, self.dateSampai, self.btnFilter, self.btnReset):
+        for w in (self.dateDari, self.dateSampai, self.btnFilter, self.btnReset, self.btnCetak):
             w.setStyleSheet(style_datepicker)
 
         existing_layout = self.layout()
@@ -1278,6 +1360,7 @@ class Laporan(QDialog):
             baris_filter.addWidget(self.dateSampai)
             baris_filter.addWidget(self.btnFilter)
             baris_filter.addWidget(self.btnReset)
+            baris_filter.addWidget(self.btnCetak)
             baris_filter.addStretch()
             existing_layout.insertLayout(0, baris_filter)
         else:
@@ -1292,6 +1375,7 @@ class Laporan(QDialog):
 
             self.btnFilter.setGeometry(395, 12, 90, 30)
             self.btnReset.setGeometry(490, 12, 90, 30)
+            self.btnCetak.setGeometry(585, 12, 90, 30)
 
             lbl_dari.show()
             lbl_sampai.show()
@@ -1300,9 +1384,11 @@ class Laporan(QDialog):
         self.dateSampai.show()
         self.btnFilter.show()
         self.btnReset.show()
+        self.btnCetak.show()
 
         self.btnFilter.clicked.connect(self.terapkan_filter)
         self.btnReset.clicked.connect(self.reset_filter)
+        self.btnCetak.clicked.connect(self.cetak_pendapatan)
 
     def tabelWidtg(self):
         header = self.tableWidget_2.horizontalHeader()
@@ -1312,8 +1398,7 @@ class Laporan(QDialog):
         self.keluar.clicked.connect(self.kembali)
 
     def terapkan_filter(self):
-        dari    = self.dateDari.date().toString("yyyy-MM-dd") + " 00:00:00"
-        sampai  = self.dateSampai.date().toString("yyyy-MM-dd") + " 23:59:59"
+        dari, sampai = self._rentang_tanggal_aktif()
         self._chart_dari = dari
         self._chart_sampai = sampai
         self.loaddata2(dari, sampai)
@@ -1328,6 +1413,103 @@ class Laporan(QDialog):
         self.loaddata2()
         self.tot()
         self._update_chart()
+
+    def _rentang_tanggal_aktif(self):
+        dari = self.dateDari.date().toString("yyyy-MM-dd") + " 00:00:00"
+        sampai = self.dateSampai.date().toString("yyyy-MM-dd") + " 23:59:59"
+        return dari, sampai
+
+    def _ambil_data_pendapatan(self):
+        dari, sampai = self._rentang_tanggal_aktif()
+        conn = get_connection()
+        curr = conn.cursor()
+        try:
+            curr.execute(
+                "SELECT nama, jumlah, total, tanggal FROM laporan "
+                "WHERE tanggal BETWEEN %s AND %s ORDER BY tanggal ASC",
+                (dari, sampai)
+            )
+            return curr.fetchall()
+        finally:
+            curr.close()
+            conn.close()
+
+    def _kelompokkan_pendapatan(self, rows):
+        from collections import defaultdict
+
+        groups = defaultdict(lambda: [0, 0.0, 0.0])
+        filter_type = self.cb_filter.currentText()
+        for nama, jumlah, total, tanggal in rows:
+            if filter_type == "Harian":
+                periode = tanggal.strftime("%d-%m-%Y")
+            elif filter_type == "Mingguan":
+                periode = tanggal.strftime("Minggu %V, %Y")
+            else:
+                periode = tanggal.strftime("%Y")
+            groups[periode][0] += 1
+            groups[periode][1] += float(jumlah or 0)
+            groups[periode][2] += float(total or 0)
+        return sorted(groups.items())
+
+    def cetak_pendapatan(self):
+        try:
+            rows = self._ambil_data_pendapatan()
+        except Exception as e:
+            QMessageBox.critical(self, "Error DB", f"Gagal mengambil data pendapatan:\n{e}")
+            return
+
+        if not rows:
+            QMessageBox.information(self, "Data Kosong", "Tidak ada pendapatan pada rentang tanggal tersebut.")
+            return
+
+        printer = QPrinter(QPrinter.HighResolution)
+        printer.setPageSize(QPrinter.A4)
+        printer.setOrientation(QPrinter.Portrait)
+        dialog = QPrintDialog(printer, self)
+        if dialog.exec_() != QPrintDialog.Accepted:
+            return
+
+        painter = QPainter()
+        if not painter.begin(printer):
+            QMessageBox.critical(self, "Error", "Gagal memulai proses cetak.")
+            return
+
+        page = printer.pageRect()
+        margin = 70
+        line_height = 28
+        y = margin
+        bold_font = QFont("Segoe UI", 14)
+        bold_font.setBold(True)
+        normal_font = QFont("Segoe UI", 10)
+        painter.setFont(bold_font)
+        painter.drawText(margin, y, "LAPORAN PENDAPATAN")
+        y += 32
+        painter.setFont(normal_font)
+        dari, sampai = self._rentang_tanggal_aktif()
+        painter.drawText(margin, y, f"Filter: {self.cb_filter.currentText()} | Periode: {dari[:10]} s/d {sampai[:10]}")
+        y += 40
+        painter.drawText(margin, y, "Periode")
+        painter.drawText(margin + 220, y, "Transaksi")
+        painter.drawText(margin + 340, y, "Jumlah Item")
+        painter.drawText(margin + 480, y, "Pendapatan")
+        y += line_height
+
+        grouped_rows = self._kelompokkan_pendapatan(rows)
+        for periode, values in grouped_rows:
+            if y > page.bottom() - margin:
+                printer.newPage()
+                y = margin
+            painter.drawText(margin, y, periode)
+            painter.drawText(margin + 220, y, str(values[0]))
+            painter.drawText(margin + 340, y, f"{values[1]:.0f}")
+            painter.drawText(margin + 480, y, f"Rp {values[2]:,.0f}")
+            y += line_height
+
+        total = sum(values[2] for _, values in grouped_rows)
+        y += line_height
+        painter.setFont(bold_font)
+        painter.drawText(margin, y, f"TOTAL PENDAPATAN: Rp {total:,.0f}")
+        painter.end()
 
     def loaddata2(self, dari=None, sampai=None):
         conn = get_connection()
