@@ -1471,7 +1471,7 @@ class Laporan(QDialog):
 
         printer = QPrinter(QPrinter.HighResolution)
         printer.setPageSize(QPrinter.A4)
-        printer.setOrientation(QPrinter.Portrait)
+        printer.setOrientation(QPrinter.Landscape)
         dialog = QPrintDialog(printer, self)
         if dialog.exec_() != QPrintDialog.Accepted:
             return
@@ -1482,40 +1482,99 @@ class Laporan(QDialog):
             return
 
         page = printer.pageRect()
-        margin = 70
-        line_height = 28
-        y = margin
-        bold_font = QFont("Segoe UI", 14)
+        margin = 55
+        content_width = page.width() - (margin * 2)
+        line_height = 30
+        title_font = QFont("Segoe UI", 16)
+        title_font.setBold(True)
+        bold_font = QFont("Segoe UI", 10)
         bold_font.setBold(True)
         normal_font = QFont("Segoe UI", 10)
-        painter.setFont(bold_font)
-        painter.drawText(margin, y, "LAPORAN PENDAPATAN")
-        y += 32
-        painter.setFont(normal_font)
+        small_font = QFont("Segoe UI", 9)
         dari, sampai = self._rentang_tanggal_aktif()
-        painter.drawText(margin, y, f"Filter: {self.cb_filter.currentText()} | Periode: {dari[:10]} s/d {sampai[:10]}")
-        y += 40
-        painter.drawText(margin, y, "Periode")
-        painter.drawText(margin + 220, y, "Transaksi")
-        painter.drawText(margin + 340, y, "Jumlah Item")
-        painter.drawText(margin + 480, y, "Pendapatan")
-        y += line_height
-
         grouped_rows = self._kelompokkan_pendapatan(rows)
-        for periode, values in grouped_rows:
-            if y > page.bottom() - margin:
-                printer.newPage()
-                y = margin
-            painter.drawText(margin, y, periode)
-            painter.drawText(margin + 220, y, str(values[0]))
-            painter.drawText(margin + 340, y, f"{values[1]:.0f}")
-            painter.drawText(margin + 480, y, f"Rp {values[2]:,.0f}")
-            y += line_height
-
         total = sum(values[2] for _, values in grouped_rows)
-        y += line_height
+
+        columns = (
+            ("Periode", int(content_width * 0.38), Qt.AlignLeft),
+            ("Transaksi", int(content_width * 0.16), Qt.AlignRight),
+            ("Jumlah Item", int(content_width * 0.18), Qt.AlignRight),
+            ("Pendapatan", 0, Qt.AlignRight),
+        )
+        columns = list(columns)
+        columns[-1] = (columns[-1][0], content_width - sum(column[1] for column in columns[:-1]), columns[-1][2])
+
+        def draw_cell(text, x, width, alignment, font):
+            painter.setFont(font)
+            painter.drawText(x + 8, y, width - 16, line_height, alignment | Qt.AlignVCenter, str(text))
+
+        def draw_table_header():
+            nonlocal y
+            painter.setPen(QtGui.QColor("#1e40af"))
+            painter.fillRect(margin, y - 4, content_width, line_height + 8, QtGui.QColor("#e8eefc"))
+            x = margin
+            for title, width, alignment in columns:
+                draw_cell(title, x, width, alignment, bold_font)
+                x += width
+            y += line_height + 8
+            painter.setPen(QtGui.QColor("#9ca3af"))
+            painter.drawLine(margin, y, margin + content_width, y)
+            y += 4
+
+        def draw_page_heading():
+            nonlocal y
+            y = margin
+            painter.setPen(QtGui.QColor("#111827"))
+            painter.setFont(title_font)
+            painter.drawText(margin, y, content_width, 28, Qt.AlignLeft | Qt.AlignVCenter, "LAPORAN PENDAPATAN")
+            y += 32
+            painter.setFont(normal_font)
+            painter.drawText(
+                margin, y, content_width, 22, Qt.AlignLeft | Qt.AlignVCenter,
+                f"Filter: {self.cb_filter.currentText()}    Periode: {dari[:10]} s/d {sampai[:10]}"
+            )
+            y += 34
+            draw_table_header()
+
+        def draw_data_row(periode, values):
+            nonlocal y
+            x = margin
+            row_data = (periode, values[0], f"{values[1]:,.0f}", f"Rp {values[2]:,.0f}")
+            for text, (_, width, alignment) in zip(row_data, columns):
+                draw_cell(text, x, width, alignment, normal_font)
+                x += width
+            y += line_height
+            painter.setPen(QtGui.QColor("#d1d5db"))
+            painter.drawLine(margin, y, margin + content_width, y)
+            y += 2
+
+        draw_page_heading()
+        for periode, values in grouped_rows:
+            if y + line_height > page.bottom() - margin:
+                printer.newPage()
+                page = printer.pageRect()
+                draw_page_heading()
+            draw_data_row(periode, values)
+
+        if y + line_height * 2 > page.bottom() - margin:
+            printer.newPage()
+            page = printer.pageRect()
+            draw_page_heading()
         painter.setFont(bold_font)
-        painter.drawText(margin, y, f"TOTAL PENDAPATAN: Rp {total:,.0f}")
+        painter.setPen(QtGui.QColor("#111827"))
+        painter.drawText(
+            margin, y + 12, content_width, line_height,
+            Qt.AlignRight | Qt.AlignVCenter,
+            f"TOTAL PENDAPATAN: Rp {total:,.0f}"
+        )
+        y += line_height * 2
+        painter.setFont(small_font)
+        painter.setPen(QtGui.QColor("#6b7280"))
+        painter.drawText(
+            margin, page.bottom() - margin, content_width, 20,
+            Qt.AlignRight | Qt.AlignVCenter,
+            "Dicetak dari aplikasi kasir"
+        )
         painter.end()
 
     def loaddata2(self, dari=None, sampai=None):
