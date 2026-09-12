@@ -17,35 +17,35 @@
    <string notr="true">
 /* ─── Global ─── */
 QDialog, QWidget#widget_2 {
-    background-color: #0f1117;
-    color: #e2e8f0;
+    background-color: #eaf2ff;
+    color: #1e293b;
     font-family: &quot;Segoe UI&quot;, sans-serif;
     font-size: 13px;
 }
 
 /* ─── Labels ─── */
 QLabel {
-    color: #94a3b8;
+    color: #475569;
     font-size: 12px;
     background: transparent;
 }
 
 QLabel#label_3 {
-    color: #f1f5f9;
+    color: #1e3a8a;
     font-size: 20px;
     font-weight: 700;
     background: transparent;
 }
 
 QLabel#label_9 {
-    color: #38bdf8;
+    color: #1d4ed8;
     font-size: 14px;
     font-weight: 700;
     background: transparent;
 }
 
 QLabel#Total {
-    color: #34d399;
+    color: #1d4ed8;
     font-size: 14px;
     font-weight: 700;
     background: transparent;
@@ -61,72 +61,72 @@ QPushButton {
 }
 
 QPushButton#keluar {
-    background-color: #dc2626;
+    background-color: #2563eb;
     color: #fff;
     border: none;
 }
-QPushButton#keluar:hover { background-color: #ef4444; }
-QPushButton#keluar:pressed { background-color: #b91c1c; }
+QPushButton#keluar:hover { background-color: #1d4ed8; }
+QPushButton#keluar:pressed { background-color: #1e40af; }
 
 /* ─── Table Widget ─── */
 QTableWidget {
-    background-color: #1a1f2e;
-    border: 1px solid #2d3548;
+    background-color: #ffffff;
+    border: 1px solid #bfdbfe;
     border-radius: 10px;
-    gridline-color: #222840;
-    color: #e2e8f0;
+    gridline-color: #e5edfb;
+    color: #1e293b;
     font-size: 13px;
-    selection-background-color: #1e3a5f;
-    selection-color: #e0f2fe;
+    selection-background-color: #dbeafe;
+    selection-color: #1e3a8a;
     outline: none;
 }
 
 QHeaderView::section {
-    background-color: #141824;
-    color: #38bdf8;
+    background-color: #eff6ff;
+    color: #1d4ed8;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
     padding: 10px 12px;
     border: none;
-    border-bottom: 2px solid #38bdf8;
+    border-bottom: 2px solid #2563eb;
 }
 
 QTableWidget::item {
     padding: 8px 12px;
-    border-bottom: 1px solid #1e2436;
+    border-bottom: 1px solid #e5edfb;
 }
 
 QTableWidget::item:selected {
-    background-color: #1e3a5f;
-    color: #e0f2fe;
+    background-color: #dbeafe;
+    color: #1e3a8a;
     border-radius: 4px;
 }
 
 QTableWidget::item:hover {
-    background-color: #1e2d45;
+    background-color: #eff6ff;
 }
 
 QScrollBar:vertical {
-    background: #141824;
+    background: #eff6ff;
     width: 8px;
     border-radius: 4px;
 }
 QScrollBar::handle:vertical {
-    background: #38bdf8;
+    background: #93c5fd;
     border-radius: 4px;
     min-height: 30px;
 }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
 
 QScrollBar:horizontal {
-    background: #141824;
+    background: #eff6ff;
     height: 8px;
     border-radius: 4px;
 }
 QScrollBar::handle:horizontal {
-    background: #38bdf8;
+    background: #93c5fd;
     border-radius: 4px;
 }
 QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
@@ -193,6 +193,9 @@ QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
        <height>480</height>
       </rect>
      </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: #ffffff; border: 1px solid #bfdbfe; border-radius: 12px;</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
@@ -221,6 +224,9 @@ QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
        <width>190</width>
        <height>28</height>
       </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:#f0f6ff; border:1px solid #bfdbfe; border-radius:6px; color:#1e293b; padding:2px 8px;</string>
      </property>
      <item>
       <property name="text">

@@ -43,7 +43,7 @@
      <widget class="QFrame" name="Background">
       <property name="styleSheet">
        <string notr="true">#Background{
-	background-color: rgb(19, 19, 19);
+	background-color: #ffffff;
 }</string>
       </property>
       <property name="frameShape">
@@ -78,17 +78,20 @@
          </property>
          <property name="styleSheet">
           <string notr="true">*{
-	color: rgb(255, 255, 255);
-	background:black;
+	color: #1e3a8a;
+	background:#ffffff;
 	border:none;
 }
+QFrame#Header{
+	border-bottom: 1px solid #bfdbfe;
+}
 QPushButton{
-	color: rgb(255, 255, 255);
+	color: #1e3a8a;
 	background:transparent;
 	border:none;
 }
 QPushButton:hover{
-	background-color: rgba(0, 85, 127, 130);
+	background-color: rgba(37, 99, 235, 40);
 	border:none;
 }
 </string>
@@ -272,7 +275,7 @@ p, li { white-space: pre-wrap; }
                 </font>
                </property>
                <property name="styleSheet">
-                <string notr="true">color:rgb(40,60,80)</string>
+                <string notr="true">color:#1e3a8a; font-weight:600;</string>
                </property>
                <property name="text">
                 <string>SISTEM PENJUALAN</string>
@@ -381,24 +384,22 @@ p, li { white-space: pre-wrap; }
           </property>
           <property name="styleSheet">
            <string notr="true">#frame_4{
-	background-color: rgb(190, 255, 251);
-	background-color: rgb(255, 243, 237);
-	background-color: rgb(24, 24, 24);
-	color: rgb(255, 255, 255);
+	background-color: #1e3a8a;
+	color: #ffffff;
 	border:none;
 }
 QToolButton{
 	
-	color: rgb(255, 255, 255);
-	background-color: rgba(10, 10, 10, 0);
+	color: #ffffff;
+	background-color: rgba(255, 255, 255, 0);
 	border:none;
 }
 QToolButton:hover{
 	color:#ffffff;
-	background-color: rgba(85, 170, 255, 40);
+	background-color: rgba(255, 255, 255, 40);
 	border-bottom-style:solid;
 	border-bottom-width: 1px;
-	border-bottom-color: rgba(85, 170, 255, 20);
+	border-bottom-color: rgba(255, 255, 255, 60);
 }</string>
           </property>
           <property name="frameShape">
@@ -429,8 +430,8 @@ QToolButton:hover{
            </property>
            <property name="styleSheet">
             <string notr="true">QToolButton:pressed{
-	color:#00FFEE;
-	background-color:rgba(85, 255, 255, 200);
+	color:#1e3a8a;
+	background-color:rgba(255, 255, 255, 220);
 	border:none;
 }</string>
            </property>
@@ -542,7 +543,7 @@ QToolButton:hover{
            </sizepolicy>
           </property>
           <property name="styleSheet">
-           <string notr="true">background-color: rgb(255, 255, 255);</string>
+           <string notr="true">background-color: #ffffff; border-left: 1px solid #bfdbfe;</string>
           </property>
           <property name="locale">
            <locale language="English" country="India"/>
@@ -582,8 +583,7 @@ QToolButton:hover{
               </rect>
              </property>
              <property name="styleSheet">
-              <string notr="true">background-color: rgb(144, 144, 144);
-background-color: rgb(255, 255, 255);</string>
+              <string notr="true">background-color: #ffffff;</string>
              </property>
              <widget class="QLabel" name="label_2">
               <property name="geometry">
@@ -595,7 +595,7 @@ background-color: rgb(255, 255, 255);</string>
                </rect>
               </property>
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Daftar Menu&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt; color:#1e3a8a; font-weight:600;&quot;&gt;Daftar Menu&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
              <widget class="QLabel" name="label_5">
@@ -606,6 +606,9 @@ background-color: rgb(255, 255, 255);</string>
                 <width>55</width>
                 <height>16</height>
                </rect>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color:#64748b;</string>
               </property>
               <property name="text">
                <string>ID Menu :</string>
@@ -620,6 +623,9 @@ background-color: rgb(255, 255, 255);</string>
                 <height>22</height>
                </rect>
               </property>
+              <property name="styleSheet">
+               <string notr="true">background-color:#f0f6ff; border:1px solid #bfdbfe; border-radius:6px; color:#1e293b; padding:2px 6px;</string>
+              </property>
              </widget>
              <widget class="QLabel" name="label_6">
               <property name="geometry">
@@ -629,6 +635,9 @@ background-color: rgb(255, 255, 255);</string>
                 <width>55</width>
                 <height>16</height>
                </rect>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color:#64748b;</string>
               </property>
               <property name="text">
                <string>Kategori :</string>
@@ -642,6 +651,9 @@ background-color: rgb(255, 255, 255);</string>
                 <width>191</width>
                 <height>22</height>
                </rect>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color:#f0f6ff; border:1px solid #bfdbfe; border-radius:6px; color:#1e293b;</string>
               </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -678,6 +690,9 @@ background-color: rgb(255, 255, 255);</string>
                 <height>16</height>
                </rect>
               </property>
+              <property name="styleSheet">
+               <string notr="true">color:#64748b;</string>
+              </property>
               <property name="text">
                <string>Menu :</string>
               </property>
@@ -691,6 +706,9 @@ background-color: rgb(255, 255, 255);</string>
                 <height>22</height>
                </rect>
               </property>
+              <property name="styleSheet">
+               <string notr="true">background-color:#f0f6ff; border:1px solid #bfdbfe; border-radius:6px; color:#1e293b; padding:2px 6px;</string>
+              </property>
              </widget>
 <widget class="QLabel" name="label_8">
                <property name="geometry">
@@ -700,6 +718,9 @@ background-color: rgb(255, 255, 255);</string>
                  <width>55</width>
                  <height>16</height>
                 </rect>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color:#64748b;</string>
                </property>
                <property name="text">
                 <string>Harga :</string>
@@ -714,6 +735,9 @@ background-color: rgb(255, 255, 255);</string>
                  <height>22</height>
                 </rect>
                </property>
+               <property name="styleSheet">
+                <string notr="true">background-color:#f0f6ff; border:1px solid #bfdbfe; border-radius:6px; color:#1e293b; padding:2px 6px;</string>
+               </property>
               </widget>
               <widget class="QLabel" name="label_9">
                <property name="geometry">
@@ -723,6 +747,9 @@ background-color: rgb(255, 255, 255);</string>
                  <width>55</width>
                  <height>16</height>
                 </rect>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color:#64748b;</string>
                </property>
                <property name="text">
                 <string>Stok :</string>
@@ -737,6 +764,9 @@ background-color: rgb(255, 255, 255);</string>
                  <height>22</height>
                 </rect>
                </property>
+               <property name="styleSheet">
+                <string notr="true">background-color:#f0f6ff; border:1px solid #bfdbfe; border-radius:6px; color:#1e293b; padding:2px 6px;</string>
+               </property>
               </widget>
               <widget class="QPushButton" name="simpan">
               <property name="geometry">
@@ -748,7 +778,7 @@ background-color: rgb(255, 255, 255);</string>
                </rect>
               </property>
               <property name="styleSheet">
-               <string notr="true">background-color: rgb(144, 144, 144);</string>
+               <string notr="true">background-color: #2563eb; color:#ffffff; border-radius:6px; font-weight:600;</string>
               </property>
               <property name="text">
                <string>baru</string>
@@ -764,7 +794,7 @@ background-color: rgb(255, 255, 255);</string>
                </rect>
               </property>
               <property name="styleSheet">
-               <string notr="true">background-color: rgb(255, 0, 0);</string>
+               <string notr="true">background-color: #dc2626; color:#ffffff; border-radius:6px; font-weight:600;</string>
               </property>
               <property name="text">
                <string>Hapus</string>
@@ -780,7 +810,7 @@ background-color: rgb(255, 255, 255);</string>
                </rect>
               </property>
               <property name="styleSheet">
-               <string notr="true">background-color: rgb(255, 255, 255);</string>
+               <string notr="true">background-color: #ffffff; border:1px solid #bfdbfe; border-radius:8px; gridline-color:#dbeafe; color:#1e293b;</string>
               </property>
               <row>
                <property name="text">
@@ -857,6 +887,9 @@ background-color: rgb(255, 255, 255);</string>
                 <height>28</height>
                </rect>
               </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: #e0e7ff; color:#4338ca; border:1px solid #a5b4fc; border-radius:6px; font-weight:600;</string>
+              </property>
               <property name="text">
                <string>edit tabel</string>
               </property>
@@ -869,6 +902,9 @@ background-color: rgb(255, 255, 255);</string>
                 <width>93</width>
                 <height>28</height>
                </rect>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: #f1f5f9; color:#475569; border:1px solid #cbd5e1; border-radius:6px; font-weight:600;</string>
               </property>
               <property name="text">
                <string>Batal</string>
@@ -890,7 +926,7 @@ background-color: rgb(255, 255, 255);</string>
               </rect>
              </property>
              <property name="styleSheet">
-              <string notr="true">background-color: rgb(144, 144, 144);</string>
+              <string notr="true">background-color: #eff6ff;</string>
              </property>
              <widget class="QLabel" name="label_3">
               <property name="geometry">
@@ -908,7 +944,7 @@ background-color: rgb(255, 255, 255);</string>
                </size>
               </property>
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;Data Pendapatan&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; color:#1e3a8a; font-weight:700;&quot;&gt;Data Pendapatan&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
              <widget class="QTableWidget" name="tableWidget_2">
@@ -921,7 +957,7 @@ background-color: rgb(255, 255, 255);</string>
                </rect>
               </property>
               <property name="styleSheet">
-               <string notr="true">background-color: rgb(99, 99, 99);</string>
+               <string notr="true">background-color: #ffffff; border:1px solid #bfdbfe; border-radius:8px; gridline-color:#dbeafe; color:#1e293b;</string>
               </property>
               <row>
                <property name="text">
@@ -969,7 +1005,7 @@ background-color: rgb(255, 255, 255);</string>
                </rect>
               </property>
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;Total Pendapatan :&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; color:#1d4ed8; font-weight:700;&quot;&gt;Total Pendapatan :&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
              <widget class="QLabel" name="Total">
@@ -982,7 +1018,7 @@ background-color: rgb(255, 255, 255);</string>
                </rect>
               </property>
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;Rp 0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt; color:#1d4ed8; font-weight:700;&quot;&gt;Rp 0&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
              </widget>
             </widget>
@@ -1008,7 +1044,7 @@ background-color: rgb(255, 255, 255);</string>
           </size>
          </property>
          <property name="styleSheet">
-          <string notr="true">background-color: rgb(24, 24, 24);</string>
+          <string notr="true">background-color: #1e3a8a;</string>
          </property>
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
@@ -1038,7 +1074,7 @@ background-color: rgb(255, 255, 255);</string>
            </size>
           </property>
           <property name="styleSheet">
-           <string notr="true">background-color: rgb(85, 255, 255);</string>
+           <string notr="true">background-color: #ffffff; border-radius:10px;</string>
           </property>
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
