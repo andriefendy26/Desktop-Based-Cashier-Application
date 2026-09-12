@@ -62,7 +62,7 @@ QLineEdit {
     color: #f1f5f9;
     font-family: "Segoe UI";
     font-size: 13px;
-    selection-background-color: #38bdf8;
+    selection-background-color: #383bf8;
 }
 
 QLineEdit:focus {
@@ -75,7 +75,7 @@ QLineEdit::placeholder {
 }
 
 QPushButton#masuk {
-    background-color: #0ea5e9;
+    background-color: #74e90e;
     color: #ffffff;
     border: none;
     border-radius: 10px;
@@ -117,7 +117,11 @@ QFrame#card {
     <!-- Icon placeholder / brand mark -->
     <widget class="QLabel" name="label_icon">
      <property name="geometry"><rect><x>155</x><y>22</y><width>50</width><height>50</height></rect></property>
-     <property name="text"><string>🏪</string></property>
+        <property name="text"><string/></property>
+        <property name="pixmap">
+         <pixmap>/Users/andriefendy/MyProject/Desktop-Based-Cashier-Application/Logo.png</pixmap>
+        </property>
+        <property name="scaledContents"><bool>true</bool></property>
      <property name="styleSheet"><string notr="true">font-size: 32px; background: transparent;</string></property>
      <property name="alignment"><set>Qt::AlignCenter</set></property>
     </widget>

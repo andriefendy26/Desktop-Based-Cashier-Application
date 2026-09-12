@@ -273,7 +273,7 @@ QFrame#line, QFrame#line_2 {
      </rect>
     </property>
     <property name="text">
-     <string>📋  Daftar Menu</string>
+     <string>📋  Daftar Menus</string>
     </property>
    </widget>
    <widget class="QLabel" name="lbl_makanan">

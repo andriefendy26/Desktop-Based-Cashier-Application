@@ -227,8 +227,50 @@ class Pilihan(QDialog):
     def __init__(self):
         super().__init__()
         uic.loadUi("Pilihan.ui", self)
+        self.setWindowFlags(
+            Qt.Window |
+            Qt.WindowMinimizeButtonHint |
+            Qt.WindowMaximizeButtonHint |
+            Qt.WindowCloseButtonHint
+        )
+        self.setMinimumSize(480, 640)
         self.center()
         self.tombol()
+        self._resize_content()
+        self.showMaximized()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._resize_content()
+
+    def _resize_content(self):
+        """Keep the dashboard content centered and widen it with the window."""
+        if not hasattr(self, 'widget') or not hasattr(self, 'card'):
+            return
+
+        window_width = self.width()
+        window_height = self.height()
+        card_width = min(max(window_width - 56, 424), 720)
+        card_height = min(max(window_height - 56, 584), 680)
+        card_x = (window_width - card_width) // 2
+        card_y = (window_height - card_height) // 2
+
+        self.widget.setGeometry(0, 0, window_width, window_height)
+        self.card.setGeometry(card_x, card_y, card_width, card_height)
+
+        content_width = card_width - 48
+        for name in ('divider', 'divider2', 'divider3', 'divider4',
+                     'Checkout', 'Menu', 'Lprn', 'logout'):
+            control = getattr(self, name, None)
+            if control is not None:
+                control.setGeometry(24, control.y(), content_width, control.height())
+
+        for name in ('label_title', 'label_sub'):
+            label = getattr(self, name, None)
+            if label is not None:
+                label.setGeometry(20, label.y(), card_width - 40, label.height())
+
+        self.label_icon.move((card_width - self.label_icon.width()) // 2, self.label_icon.y())
 
     def center(self):
         qr = self.frameGeometry()
@@ -1341,6 +1383,25 @@ class Laporan(QDialog):
 # ─────────────────────────────────────────────
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
+    app.setStyleSheet("""
+        QMessageBox {
+            background-color: #1a1f2e;
+        }
+        QMessageBox QLabel {
+            color: #f1f5f9;
+            font-size: 13px;
+        }
+        QMessageBox QPushButton {
+            background-color: #1e40af;
+            color: #e0f2fe;
+            border-radius: 6px;
+            padding: 6px 16px;
+            min-width: 70px;
+        }
+        QMessageBox QPushButton:hover {
+            background-color: #2563eb;
+        }
+    """)
     window = login()
     window.show()
     sys.exit(app.exec_())
