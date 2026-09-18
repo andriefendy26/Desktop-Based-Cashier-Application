@@ -16,11 +16,40 @@
   <property name="styleSheet">
    <string notr="true">
 /* ─── Global ─── */
+
 QDialog, QWidget#widget_2 {
     background-color: #eaf2ff;
     color: #1e293b;
     font-family: &quot;Segoe UI&quot;, sans-serif;
     font-size: 13px;
+}
+
+/* ─── ComboBox ─── */
+QComboBox {
+    background-color: #f0f6ff;
+    border: 1.5px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 4px 12px;
+    color: #1e293b;
+    font-size: 13px;
+}
+QComboBox:hover { border-color: #60a5fa; background-color: #ffffff; }
+QComboBox:focus, QComboBox:on { border-color: #2563eb; background-color: #ffffff; }
+QComboBox::drop-down { border: none; width: 28px; }
+QComboBox::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #2563eb;
+    margin-right: 8px;
+}
+QComboBox QAbstractItemView {
+    background-color: #ffffff;
+    border: 1px solid #bfdbfe;
+    color: #1e293b;
+    selection-background-color: #dbeafe;
+    selection-color: #1e3a8a;
+    outline: none;
 }
 
 /* ─── Labels ─── */
@@ -134,154 +163,60 @@ QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
   </property>
   <widget class="QWidget" name="widget_2" native="true">
    <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>941</width>
-     <height>671</height>
-    </rect>
+    <rect><x>0</x><y>0</y><width>936</width><height>668</height></rect>
    </property>
+
+   <!-- Judul -->
    <widget class="QLabel" name="label_3">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>24</y>
-      <width>300</width>
-      <height>40</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>📊  Data Pendapatan</string>
-    </property>
+    <property name="geometry"><rect><x>28</x><y>24</y><width>300</width><height>40</height></rect></property>
+    <property name="text"><string>📊  Data Pendapatan</string></property>
    </widget>
-    <widget class="QTableWidget" name="tableWidget_2">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>78</y>
-       <width>550</width>
-       <height>480</height>
-      </rect>
-     </property>
-     <column>
-      <property name="text">
-       <string>Nama Pembeli</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Jumlah</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Total Pembelian</string>
-      </property>
-     </column>
-    <column>
-     <property name="text">
-      <string>Tanggal</string>
-     </property>
-    </column>
-    </widget>
-    <widget class="QFrame" name="frame_chart">
-     <property name="geometry">
-      <rect>
-       <x>600</x>
-       <y>78</y>
-       <width>310</width>
-       <height>480</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: #ffffff; border: 1px solid #bfdbfe; border-radius: 12px;</string>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_filter">
-     <property name="geometry">
-      <rect>
-       <x>600</x>
-       <y>56</y>
-       <width>120</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Filter Grafik:</string>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="cb_filter">
-     <property name="geometry">
-      <rect>
-       <x>720</x>
-       <y>52</y>
-       <width>190</width>
-       <height>28</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color:#f0f6ff; border:1px solid #bfdbfe; border-radius:6px; color:#1e293b; padding:2px 8px;</string>
-     </property>
-     <item>
-      <property name="text">
-       <string>Harian</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-    <string>Mingguan</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Tahunan</string>
-      </property>
-     </item>
-    </widget>
+
+   <!-- Filter grafik (sejajar tepi kanan chart) -->
+   <widget class="QLabel" name="label_filter">
+    <property name="geometry"><rect><x>548</x><y>76</y><width>96</width><height>34</height></rect></property>
+    <property name="text"><string>Filter Grafik:</string></property>
+   </widget>
+   <widget class="QComboBox" name="cb_filter">
+    <property name="geometry"><rect><x>648</x><y>76</y><width>260</width><height>34</height></rect></property>
+    <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+    <item><property name="text"><string>Harian</string></property></item>
+    <item><property name="text"><string>Mingguan</string></property></item>
+    <item><property name="text"><string>Tahunan</string></property></item>
+   </widget>
+
+   <!-- Tabel (kiri) -->
+   <widget class="QTableWidget" name="tableWidget_2">
+    <property name="geometry"><rect><x>28</x><y>122</y><width>500</width><height>464</height></rect></property>
+    <column><property name="text"><string>Nama Pembeli</string></property></column>
+    <column><property name="text"><string>Jumlah</string></property></column>
+    <column><property name="text"><string>Total Pembelian</string></property></column>
+    <column><property name="text"><string>Tanggal</string></property></column>
+   </widget>
+
+   <!-- Chart (kanan) -->
+   <widget class="QFrame" name="frame_chart">
+    <property name="geometry"><rect><x>548</x><y>122</y><width>360</width><height>464</height></rect></property>
+    <property name="styleSheet">
+     <string notr="true">QFrame#frame_chart { background-color: #ffffff; border: 1px solid #bfdbfe; border-radius: 12px; }</string>
+    </property>
+    <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+    <property name="frameShadow"><enum>QFrame::Raised</enum></property>
+   </widget>
+
+   <!-- Footer -->
    <widget class="QLabel" name="label_9">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>582</y>
-      <width>200</width>
-      <height>30</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Total Pendapatan :</string>
-    </property>
+    <property name="geometry"><rect><x>28</x><y>604</y><width>170</width><height>40</height></rect></property>
+    <property name="text"><string>Total Pendapatan :</string></property>
    </widget>
    <widget class="QLabel" name="Total">
-    <property name="geometry">
-     <rect>
-      <x>248</x>
-      <y>582</y>
-      <width>280</width>
-      <height>30</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Rp 0</string>
-    </property>
+    <property name="geometry"><rect><x>200</x><y>604</y><width>300</width><height>40</height></rect></property>
+    <property name="text"><string>Rp 0</string></property>
    </widget>
    <widget class="QPushButton" name="keluar">
-    <property name="geometry">
-     <rect>
-      <x>776</x>
-      <y>576</y>
-      <width>130</width>
-      <height>36</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>✕  Kembali</string>
-    </property>
+    <property name="geometry"><rect><x>778</x><y>604</y><width>130</width><height>40</height></rect></property>
+    <property name="text"><string>✕  Kembali</string></property>
+    <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
    </widget>
   </widget>
  </widget>

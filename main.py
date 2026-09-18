@@ -14,7 +14,22 @@ matplotlib.use('Qt5Agg')
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.dates as mdates
+from matplotlib.ticker import FuncFormatter
 
+# ── Palet chart (tema terang, senada halaman laporan) ──
+CHART_BG    = '#ffffff'
+CHART_TEXT  = '#64748b'
+CHART_TITLE = '#1e3a8a'
+CHART_GRID  = '#e5edfb'
+CHART_AXIS  = '#bfdbfe'
+CHART_COLOR = {'Harian': '#3b82f6', 'Mingguan': '#38bdf8', 'Tahunan': '#818cf8'}
+
+def _fmt_singkat(v, _pos=None):
+    """1.500.000 -> 1.5jt, supaya label sumbu Y tidak memenuhi chart."""
+    if v >= 1_000_000_000: return f"{v/1_000_000_000:g}M"
+    if v >= 1_000_000:     return f"{v/1_000_000:g}jt"
+    if v >= 1_000:         return f"{v/1_000:g}rb"
+    return f"{v:g}"
 
 def _setup_responsive_scaling(window, content, base_width, base_height):
     """Capture the fixed UI geometry so it can scale with the dialog."""
@@ -810,8 +825,10 @@ class kasir(QDialog):
         def pt(points):
             return int(points * dpi / 72)
 
-        margin = pt(4)
-        lh     = pt(14)
+        margin = pt(14)
+        avail  = pw - margin * 2
+        lh     = pt(15)
+        black  = QtGui.QColor("#000000")
 
         def make_font(size_pt, bold=False):
             f = QFont("Courier New", size_pt)
@@ -819,77 +836,125 @@ class kasir(QDialog):
             f.setPixelSize(pt(size_pt))
             return f
 
+        def text_w(text, font):
+            return QFontMetrics(font).horizontalAdvance(text)
+
         def draw_center(text, font, y):
             painter.setFont(font)
-            fm = QFontMetrics(font)
-            w  = fm.horizontalAdvance(text)
-            painter.drawText((pw - w) // 2, y, text)
+            painter.drawText((pw - text_w(text, font)) // 2, y, text)
 
-        def draw_left(text, font, y):
+        def draw_left(text, font, y, x=None):
             painter.setFont(font)
-            painter.drawText(margin, y, text)
+            painter.drawText(margin if x is None else x, y, text)
 
         def draw_right(text, font, y):
             painter.setFont(font)
-            fm = QFontMetrics(font)
-            w  = fm.horizontalAdvance(text)
-            painter.drawText(pw - margin - w, y, text)
+            painter.drawText(pw - margin - text_w(text, font), y, text)
 
-        def draw_lr(left_text, right_text, font, y):
-            draw_left(left_text, font, y)
-            draw_right(right_text, font, y)
+        def garis(y, inset=0.0):
+            """Garis solid. inset = proporsi lebar yang dipangkas di tiap sisi."""
+            painter.setPen(QtGui.QPen(black, max(1, pt(0.8))))
+            dx = int(avail * inset)
+            painter.drawLine(margin + dx, y, pw - margin - dx, y)
+            painter.setPen(black)
 
-        def separator(y, char="─"):
-            draw_center(char * 32, make_font(7), y)
+        def garis_ganda(y, inset=0.0):
+            painter.setPen(QtGui.QPen(black, max(1, pt(0.8))))
+            dx = int(avail * inset)
+            painter.drawLine(margin + dx, y, pw - margin - dx, y)
+            painter.drawLine(margin + dx, y + pt(3), pw - margin - dx, y + pt(3))
+            painter.setPen(black)
 
-        total_val  = self.hitung_total()
-        bayar_text = self.uangpembayaran.text().strip()
+        painter.setPen(black)
+
+        # ── Data ──
+        total_val = self.hitung_total()
         try:
-            bayar_val = float(bayar_text)
+            bayar_val = float(self.uangpembayaran.text().strip())
         except ValueError:
             bayar_val = 0.0
         kembali_val = bayar_val - total_val
 
-        waktu = waktu_transaksi or datetime.now()
+        waktu     = waktu_transaksi or datetime.now()
         waktu_str = waktu.strftime("%d-%m-%Y %H:%M")
-
-        y = pt(6)
-
-        draw_center("Restoran Cepat Saji",       make_font(10, bold=True), y); y += lh
-        draw_center("Universitas Borneo Tarakan", make_font(8),             y); y += lh
-        draw_center("Teknik Komputer",            make_font(9, bold=True),  y); y += lh
-        separator(y); y += lh
-        draw_center("STRUK BELANJA", make_font(10, bold=True), y); y += lh
-        draw_center(waktu_str, make_font(7), y); y += int(lh * 1.2)
-
         nama_pemesan = self.pemesan.text().strip() or "-"
-        draw_lr("Pemesan :", nama_pemesan, make_font(8), y); y += lh
-        separator(y); y += lh
-        draw_left("Item Pesanan:", make_font(8, bold=True), y); y += lh
 
+        f_norm  = make_font(8)
+        f_bold  = make_font(8, bold=True)
+
+        y = pt(14)
+
+        # ── Header ──
+        draw_center("Gerai CerdasQ", make_font(11, bold=True), y);           y += lh
+        draw_center("Kab. Malinau, Kalimantan Utara", make_font(8), y);      y += lh
+        draw_center("STRUK BELANJA", make_font(9, bold=True), y);            y += int(lh * 0.8)
+        garis(y, 0.02);                                                      y += int(lh * 1.6)
+
+        # ── Tanggal & waktu (tebal, besar) ──
+        draw_center(waktu_str, make_font(13, bold=True), y);                 y += int(lh * 1.4)
+
+        draw_left(f"Pemesan : {nama_pemesan}", f_norm, y);                   y += int(lh * 0.7)
+        garis(y, 0.05);                                                      y += int(lh * 1.4)
+
+        # ── Item pesanan ──
+        draw_left("Item Pesanan:", f_norm, y);                               y += int(lh * 1.3)
+
+        gap = pt(8)
         for row in range(self.table_2.rowCount()):
             nama = self.table_2.item(row, 1).text()
-            hrg  = self.table_2.item(row, 2).text()
-            jml  = self.table_2.item(row, 3).text()
-            sub  = self.table_2.item(row, 4).text()
-            draw_left(f"  {nama}", make_font(8), y); y += lh
-            draw_lr(f"   Rp{int(float(hrg)):,} x {jml}",
-                    f"Rp{int(float(sub)):,}", make_font(8), y); y += lh
+            hrg  = int(float(self.table_2.item(row, 2).text()))
+            jml  = int(float(self.table_2.item(row, 3).text()))
+            sub  = int(float(self.table_2.item(row, 4).text()))
 
-        separator(y); y += lh
+            detail = f"Rp{hrg:,} x {jml}"
+            kiri   = f"{nama} {detail}"
+            kanan  = f"Rp{sub:,}"
 
-        font_bold = make_font(9, bold=True)
-        font_norm = make_font(8)
-        draw_lr("Total Belanja :", f"Rp{int(total_val):,}",   font_bold, y); y += lh
-        draw_lr("Uang Bayar    :", f"Rp{int(bayar_val):,}",   font_norm, y); y += lh
-        draw_lr("Kembalian     :", f"Rp{int(kembali_val):,}", font_bold, y); y += lh
+            if text_w(kiri, f_norm) + gap + text_w(kanan, f_norm) <= avail:
+                # semua muat dalam satu baris
+                draw_left(kiri, f_norm, y)
+                draw_right(kanan, f_norm, y)
+                y += lh
+            elif text_w(kiri, f_norm) <= avail:
+                # subtotal turun ke baris berikutnya (seperti di contoh)
+                draw_left(kiri, f_norm, y);  y += lh
+                draw_left(kanan, f_norm, y); y += lh
+            else:
+                # nama terlalu panjang: nama sendiri, lalu detail + subtotal
+                draw_left(nama, f_norm, y);   y += lh
+                draw_left(detail, f_norm, y)
+                draw_right(kanan, f_norm, y); y += lh
+            y += pt(3)
 
-        separator(y, "═"); y += int(lh * 1.3)
-        draw_center("Terima Kasih Telah Berbelanja!", make_font(9, bold=True), y); y += lh
-        draw_center("Selamat Makan!",                 make_font(8),            y)
+        y -= pt(3)
+        y += int(lh * 0.2)
+        garis(y, 0.02);                                                      y += int(lh * 1.5)
+
+        # ── Total (titik dua sejajar, nilai rata kiri setelah titik dua) ──
+        x_label = margin + pt(6)
+        x_value = x_label + text_w("Total Belanja : ", f_bold)
+        x_colon = x_value - text_w(": ", f_bold)
+
+        def baris_total(label, nilai, font):
+            draw_left(label, font, y_now[0], x=x_label)
+            draw_left(":", font, y_now[0], x=x_colon)
+            draw_left(nilai, font, y_now[0], x=x_value)
+            y_now[0] += int(lh * 1.3)
+
+        y_now = [y]
+        baris_total("Total Belanja", f"Rp{int(total_val):,}",   f_bold)
+        baris_total("Uang Bayar",    f"Rp{int(bayar_val):,}",   f_norm)
+        baris_total("Kembalian",     f"Rp{int(kembali_val):,}", f_bold)
+        y = y_now[0]
+
+        y -= int(lh * 0.5)
+        garis_ganda(y, 0.02);                                                y += int(lh * 2)
+
+        # ── Footer ──
+        draw_center("Terima Kasih Sudah Mampir!", make_font(9, bold=True), y); y += int(lh * 1.3)
+        draw_center("Selamat Makan!", make_font(8), y)
 
         painter.end()
-
     def cetak_struk(self, waktu_transaksi=None):
         """Tampilkan dialog print. Keranjang TIDAK dikosongkan di sini —
         pengosongan keranjang & refresh data menu ditangani terpusat di bayarr(),
@@ -1254,7 +1319,8 @@ class Laporan(QDialog):
         self.tot()
         self.cb_filter.currentTextChanged.connect(self._update_chart)
         self._update_chart()
-        _setup_responsive_scaling(self, self.widget_2, 941, 671)
+        # _setup_responsive_scaling(self, self.widget_2, 941, 671)
+        _setup_responsive_scaling(self, self.widget_2, 936, 668)   # sebelumnya 941, 671
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -1268,19 +1334,26 @@ class Laporan(QDialog):
 
     def _setup_chart(self):
         self.figure = Figure(figsize=(4, 4), dpi=100)
-        self.figure.patch.set_facecolor('#1a1f2e')
+        self.figure.patch.set_facecolor(CHART_BG)
         self.canvas = FigureCanvas(self.figure)
         self.ax = self.figure.add_subplot(111)
-        self.ax.set_facecolor('#1a1f2e')
-        self.ax.tick_params(colors='#94a3b8', labelsize=8)
-        self.ax.xaxis.label.set_color('#94a3b8')
-        self.ax.yaxis.label.set_color('#94a3b8')
-        self.ax.title.set_color('#f1f5f9')
-        for spine in self.ax.spines.values():
-            spine.set_edgecolor('#2d3548')
+        self._style_axes()
         layout = QVBoxLayout(self.frame_chart)
-        layout.setContentsMargins(4, 4, 4, 4)
+        layout.setContentsMargins(8, 8, 8, 8)
         layout.addWidget(self.canvas)
+
+    def _style_axes(self):
+        ax = self.ax
+        ax.set_axis_on()
+        ax.set_facecolor(CHART_BG)
+        ax.tick_params(colors=CHART_TEXT, labelsize=8, length=0)
+        for name, spine in ax.spines.items():
+            if name in ('top', 'right'):
+                spine.set_visible(False)
+            else:
+                spine.set_edgecolor(CHART_AXIS)
+        ax.yaxis.grid(True, color=CHART_GRID, linewidth=1)
+        ax.set_axisbelow(True)
 
     def _get_chart_data(self):
         conn = get_connection()
@@ -1302,132 +1375,118 @@ class Laporan(QDialog):
         filter_type = self.cb_filter.currentText()
         data = self._get_chart_data()
         self.ax.clear()
-        self.ax.set_facecolor('#1a1f2e')
-        for spine in self.ax.spines.values():
-            spine.set_edgecolor('#2d3548')
-        self.ax.tick_params(colors='#94a3b8', labelsize=8)
-        self.ax.xaxis.label.set_color('#94a3b8')
-        self.ax.yaxis.label.set_color('#94a3b8')
-        self.ax.title.set_color('#f1f5f9')
+        self._style_axes()
 
         if not data:
+            self.ax.set_axis_off()
             self.ax.text(0.5, 0.5, 'Tidak ada data', transform=self.ax.transAxes,
-                         ha='center', va='center', color='#94a3b8', fontsize=10)
+                        ha='center', va='center', color='#94a3b8', fontsize=10)
             self.canvas.draw()
             return
 
         from collections import defaultdict
-        if filter_type == "Harian":
-            groups = defaultdict(float)
-            for tanggal, total in data:
-                key = tanggal.strftime("%d-%m-%Y") if hasattr(tanggal, 'strftime') else str(tanggal)[:10]
-                groups[key] += float(total)
-            labels = list(groups.keys())
-            values = list(groups.values())
-            self.ax.bar(labels, values, color='#38bdf8')
-            self.ax.set_title("Pendapatan Harian", fontsize=10, fontweight='bold')
-            self.ax.set_ylabel("Total (Rp)", fontsize=9)
-            self.ax.tick_params(axis='x', rotation=45, labelsize=7)
-            self.figure.tight_layout()
-
-        elif filter_type == "Mingguan":
-            groups = defaultdict(float)
-            for tanggal, total in data:
-                key = tanggal.strftime("Minggu %V, %Y") if hasattr(tanggal, 'strftime') else str(tanggal)[:10]
-                groups[key] += float(total)
-            labels = sorted(groups.keys())
-            values = [groups[k] for k in labels]
-            self.ax.bar(labels, values, color='#34d399')
-            self.ax.set_title("Pendapatan Mingguan", fontsize=10, fontweight='bold')
-            self.ax.set_ylabel("Total (Rp)", fontsize=9)
-            self.ax.tick_params(axis='x', rotation=45, labelsize=8)
-            self.figure.tight_layout()
-
-        else:
-            groups = defaultdict(float)
-            for tanggal, total in data:
+        groups = defaultdict(float)
+        for tanggal, total in data:
+            ada = hasattr(tanggal, 'strftime')
+            if filter_type == "Harian":
+                key = tanggal.strftime("%d-%m-%Y") if ada else str(tanggal)[:10]
+            elif filter_type == "Mingguan":
+                key = tanggal.strftime("Minggu %V, %Y") if ada else str(tanggal)[:10]
+            else:
                 key = str(tanggal.year) if hasattr(tanggal, 'year') else str(tanggal)[:4]
-                groups[key] += float(total)
-            labels = sorted(groups.keys())
-            values = [groups[k] for k in labels]
-            self.ax.bar(labels, values, color='#f97316')
-            self.ax.set_title("Pendapatan Tahunan", fontsize=10, fontweight='bold')
-            self.ax.set_ylabel("Total (Rp)", fontsize=9)
-            self.ax.tick_params(axis='x', rotation=0, labelsize=9)
-            self.figure.tight_layout()
+            groups[key] += float(total)
 
+        # data sudah ORDER BY tanggal ASC, jadi urutan dict = urutan kronologis
+        labels = list(groups.keys())
+        values = list(groups.values())
+
+        judul = {"Harian": "Pendapatan Harian",
+                "Mingguan": "Pendapatan Mingguan"}.get(filter_type, "Pendapatan Tahunan")
+
+        self.ax.bar(labels, values, width=0.6,
+                    color=CHART_COLOR.get(filter_type, '#818cf8'))
+        self.ax.set_title(judul, fontsize=10, fontweight='bold', color=CHART_TITLE, pad=10)
+        self.ax.set_ylabel("Total (Rp)", fontsize=9, color=CHART_TEXT)
+        self.ax.yaxis.set_major_formatter(FuncFormatter(_fmt_singkat))
+
+        if filter_type != "Tahunan":
+            for lbl in self.ax.get_xticklabels():
+                lbl.set_rotation(45)
+                lbl.set_ha('right')
+                lbl.set_fontsize(7 if filter_type == "Harian" else 8)
+
+        self.figure.tight_layout()
         self.canvas.draw()
 
     def _buat_filter_tanggal(self):
-        """Tambahkan kontrol filter tanggal secara dinamis (tidak perlu edit Data.ui).
-        Jika Data.ui punya QVBoxLayout/QHBoxLayout utama, filter disisipkan di atas.
-        Kalau tidak ada layout (widget diposisikan manual), filter ditempel di
-        pojok kiri atas dengan geometry tetap — silakan geser di Qt Designer bila perlu."""
-        self.dateDari = QDateEdit(self)
-        self.dateDari.setCalendarPopup(True)
-        self.dateDari.setDate(QDate.currentDate().addMonths(-1))
+        """Kontrol filter dibuat lewat kode, diletakkan di widget_2 (bukan di dialog)
+        supaya posisinya mengikuti layout .ui dan ikut responsive scaling."""
+        p = self.widget_2
 
-        self.dateSampai = QDateEdit(self)
-        self.dateSampai.setCalendarPopup(True)
-        self.dateSampai.setDate(QDate.currentDate())
+        lbl_dari   = QLabel("Dari:", p)
+        lbl_sampai = QLabel("Sampai:", p)
+        self.dateDari   = QDateEdit(p)
+        self.dateSampai = QDateEdit(p)
+        self.btnFilter  = QPushButton("🔍 Filter", p)
+        self.btnReset   = QPushButton("↩ Reset", p)
+        self.btnCetak   = QPushButton("🖨  Cetak", p)
 
-        self.btnFilter = QPushButton("🔍  Filter", self)
-        self.btnReset = QPushButton("↩  Reset", self)
-        self.btnCetak = QPushButton("🖨  Cetak", self)
+        for d, tgl in ((self.dateDari, QDate.currentDate().addMonths(-1)),
+                    (self.dateSampai, QDate.currentDate())):
+            d.setCalendarPopup(True)
+            d.setDisplayFormat("dd-MM-yyyy")
+            d.setDate(tgl)
+            d.setCursor(Qt.PointingHandCursor)
+            d.setStyleSheet("""
+                QDateEdit {
+                    background-color: #f0f6ff; border: 1.5px solid #bfdbfe;
+                    border-radius: 8px; padding: 4px 10px; color: #1e293b;
+                }
+                QDateEdit:focus { border-color: #2563eb; background-color: #ffffff; }
+                QDateEdit::drop-down { border: none; width: 22px; }
+                QDateEdit::down-arrow {
+                    image: none;
+                    border-left: 4px solid transparent;
+                    border-right: 4px solid transparent;
+                    border-top: 5px solid #2563eb;
+                    margin-right: 6px;
+                }
+            """)
 
-        style_datepicker = """
-            QDateEdit {
-                background-color: #1e2538; border: 1.5px solid #2d3548;
-                border-radius: 8px; padding: 6px 10px; color: #f1f5f9;
-            }
-            QPushButton {
-                background-color: #1e40af; color: #e0f2fe; border: none;
-                border-radius: 8px; padding: 6px 14px; font-weight: 600;
-            }
-            QPushButton:hover { background-color: #2563eb; }
+        style_primary = """
+            QPushButton { background-color: #2563eb; color: #ffffff; border: none;
+                        border-radius: 8px; padding: 0px 6px; font-size: 12px; font-weight: 600; }
+            QPushButton:hover { background-color: #1d4ed8; }
+            QPushButton:pressed { background-color: #1e40af; }
         """
-        for w in (self.dateDari, self.dateSampai, self.btnFilter, self.btnReset, self.btnCetak):
-            w.setStyleSheet(style_datepicker)
+        style_soft = """
+            QPushButton { background-color: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe;
+                        border-radius: 8px; padding: 0px 6px; font-size: 12px; font-weight: 600; }
+            QPushButton:hover { border-color: #2563eb; background-color: #dbeafe; }
+        """
+        self.btnFilter.setStyleSheet(style_primary)
+        self.btnReset.setStyleSheet(style_soft)
+        self.btnCetak.setStyleSheet(style_soft.replace("font-size: 12px", "font-size: 13px"))
 
-        existing_layout = self.layout()
-        if existing_layout is not None:
-            baris_filter = QHBoxLayout()
-            baris_filter.addWidget(QLabel("Dari:"))
-            baris_filter.addWidget(self.dateDari)
-            baris_filter.addWidget(QLabel("Sampai:"))
-            baris_filter.addWidget(self.dateSampai)
-            baris_filter.addWidget(self.btnFilter)
-            baris_filter.addWidget(self.btnReset)
-            baris_filter.addWidget(self.btnCetak)
-            baris_filter.addStretch()
-            existing_layout.insertLayout(0, baris_filter)
-        else:
-            # Tidak ada layout utama -> posisikan manual di pojok kiri atas
-            lbl_dari = QLabel("Dari:", self)
-            lbl_dari.setGeometry(20, 16, 40, 24)
-            self.dateDari.setGeometry(60, 12, 130, 30)
+        # Baris filter: y=76, tinggi 34, berakhir tepat di tepi kanan tabel (x=528)
+        lbl_dari.setGeometry(28, 76, 34, 34)
+        self.dateDari.setGeometry(64, 76, 120, 34)
+        lbl_sampai.setGeometry(192, 76, 46, 34)
+        self.dateSampai.setGeometry(240, 76, 120, 34)
+        self.btnFilter.setGeometry(370, 76, 78, 34)
+        self.btnReset.setGeometry(450, 76, 78, 34)
+        # Footer: Cetak di sebelah kiri tombol Kembali (x=778)
+        self.btnCetak.setGeometry(636, 604, 130, 40)
 
-            lbl_sampai = QLabel("Sampai:", self)
-            lbl_sampai.setGeometry(200, 16, 50, 24)
-            self.dateSampai.setGeometry(255, 12, 130, 30)
-
-            self.btnFilter.setGeometry(395, 12, 90, 30)
-            self.btnReset.setGeometry(490, 12, 90, 30)
-            self.btnCetak.setGeometry(585, 12, 90, 30)
-
-            lbl_dari.show()
-            lbl_sampai.show()
-
-        self.dateDari.show()
-        self.dateSampai.show()
-        self.btnFilter.show()
-        self.btnReset.show()
-        self.btnCetak.show()
+        for w in (lbl_dari, lbl_sampai, self.dateDari, self.dateSampai,
+                self.btnFilter, self.btnReset, self.btnCetak):
+            w.show()
+        for b in (self.btnFilter, self.btnReset, self.btnCetak):
+            b.setCursor(Qt.PointingHandCursor)
 
         self.btnFilter.clicked.connect(self.terapkan_filter)
         self.btnReset.clicked.connect(self.reset_filter)
         self.btnCetak.clicked.connect(self.cetak_pendapatan)
-
     def tabelWidtg(self):
         header = self.tableWidget_2.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.Stretch)
