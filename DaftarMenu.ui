@@ -274,10 +274,19 @@ QPushButton#keluar:hover { border-color: #2563eb; color: #ffffff; background-col
     </widget>
    </widget>
 
-   <!-- ════ RIGHT: TABLE ════ -->
+   <!-- ════ RIGHT: SEARCH + TABLE ════ -->
+   <widget class="QLineEdit" name="textSearchMenu">
+    <property name="geometry">
+     <rect><x>316</x><y>18</y><width>646</width><height>34</height></rect>
+    </property>
+    <property name="placeholderText">
+     <string>🔍  Cari berdasarkan ID/kode menu...</string>
+    </property>
+   </widget>
+
    <widget class="QTableWidget" name="tableWidget">
     <property name="geometry">
-     <rect><x>316</x><y>18</y><width>646</width><height>566</height></rect>
+     <rect><x>316</x><y>60</y><width>646</width><height>524</height></rect>
     </property>
     <column><property name="text"><string>No</string></property></column>
     <column><property name="text"><string>Kategori</string></property></column>

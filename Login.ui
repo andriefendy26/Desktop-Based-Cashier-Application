@@ -3,93 +3,79 @@
  <class>Dialog</class>
  <widget class="QDialog" name="Dialog">
   <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>420</width>
-    <height>420</height>
-   </rect>
+   <rect><x>0</x><y>0</y><width>460</width><height>520</height></rect>
+  </property>
+  <property name="minimumSize">
+   <size><width>360</width><height>460</height></size>
   </property>
   <property name="windowTitle">
    <string>Login — Kasir</string>
   </property>
   <property name="styleSheet">
    <string notr="true">
-QDialog {
-    background-color: #eaf2ff;
-}
-
-QWidget#bgwidget {
-    background-color: #eaf2ff;
+QDialog, QWidget#bgwidget {
+    background-color: #eef3fa;
 }
 
 QLabel#label_title {
-    color: #1e3a8a;
+    color: #14306b;
     font-family: "Segoe UI";
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
     background: transparent;
 }
 
 QLabel#label_sub {
-    color: #64748b;
+    color: #6b7a90;
     font-family: "Segoe UI";
     font-size: 12px;
     background: transparent;
 }
 
 QLabel#label_3, QLabel#label_4 {
-    color: #64748b;
+    color: #6b7a90;
     font-family: "Segoe UI";
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 1px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
     background: transparent;
 }
 
 QLabel#error {
-    color: #dc2626;
+    color: #c0392f;
     font-family: "Segoe UI";
     font-size: 11px;
     background: transparent;
 }
 
 QLineEdit {
-    background-color: #f0f6ff;
-    border: 1.5px solid #bfdbfe;
+    background-color: #f5f8fd;
+    border: 1px solid #d5e0ef;
     border-radius: 10px;
-    padding: 10px 14px;
+    padding: 11px 14px;
     color: #1e293b;
     font-family: "Segoe UI";
     font-size: 13px;
-    selection-background-color: #93c5fd;
+    selection-background-color: #bdd4f5;
 }
 
 QLineEdit:focus {
-    border: 1.5px solid #2563eb;
+    border: 1px solid #2563eb;
     background-color: #ffffff;
 }
 
-QLineEdit::placeholder {
-    color: #94a3b8;
-}
-
-QLineEdit#passwordfield {
-    padding-right: 62px;
-}
-
 QPushButton#toggle_password {
-    background-color: transparent;
+    background-color: #f5f8fd;
     color: #2563eb;
-    border: none;
+    border: 1px solid #d5e0ef;
+    border-radius: 10px;
     font-family: "Segoe UI";
     font-size: 11px;
     font-weight: 700;
-    padding: 0;
 }
-
 QPushButton#toggle_password:hover {
-    color: #60a5fa;
+    border-color: #2563eb;
+    background-color: #eaf1fc;
 }
 
 QPushButton#masuk {
@@ -100,115 +86,229 @@ QPushButton#masuk {
     font-family: "Segoe UI";
     font-size: 13px;
     font-weight: 700;
-    padding: 12px;
 }
-
-QPushButton#masuk:hover {
-    background-color: #1d4ed8;
-}
-
-QPushButton#masuk:pressed {
-    background-color: #1e40af;
-}
+QPushButton#masuk:hover   { background-color: #1d4ed8; }
+QPushButton#masuk:pressed { background-color: #1b3fae; }
 
 QFrame#card {
     background-color: #ffffff;
-    border: 1px solid #bfdbfe;
-    border-radius: 16px;
+    border: 1px solid #e0e7f2;
+    border-radius: 18px;
+}
+
+QFrame#divider_login {
+    background-color: #eaeff7;
+    border: none;
+    max-height: 1px;
 }
    </string>
   </property>
 
-  <widget class="QWidget" name="bgwidget" native="true">
-   <property name="geometry">
-    <rect><x>0</x><y>0</y><width>420</width><height>420</height></rect>
-   </property>
+  <layout class="QVBoxLayout" name="rootLayout">
+   <property name="spacing"><number>0</number></property>
+   <property name="leftMargin"><number>0</number></property>
+   <property name="topMargin"><number>0</number></property>
+   <property name="rightMargin"><number>0</number></property>
+   <property name="bottomMargin"><number>0</number></property>
+   <item>
+    <widget class="QWidget" name="bgwidget" native="true">
+     <layout class="QVBoxLayout" name="bgLayout">
+      <property name="leftMargin"><number>24</number></property>
+      <property name="topMargin"><number>24</number></property>
+      <property name="rightMargin"><number>24</number></property>
+      <property name="bottomMargin"><number>24</number></property>
+      <item>
+       <spacer name="spacerTop">
+        <property name="orientation"><enum>Qt::Vertical</enum></property>
+        <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="cardRow">
+        <item>
+         <spacer name="spacerLeft">
+          <property name="orientation"><enum>Qt::Horizontal</enum></property>
+          <property name="sizeHint" stdset="0"><size><width>10</width><height>20</height></size></property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QFrame" name="card">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>1</horstretch><verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize"><size><width>300</width><height>0</height></size></property>
+          <property name="maximumSize"><size><width>420</width><height>16777215</height></size></property>
+          <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+          <property name="frameShadow"><enum>QFrame::Raised</enum></property>
 
-   <!-- Card container -->
-   <widget class="QFrame" name="card">
-    <property name="geometry">
-     <rect><x>30</x><y>30</y><width>360</width><height>360</height></rect>
-    </property>
-    <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
-    <property name="frameShadow"><enum>QFrame::Raised</enum></property>
+          <layout class="QVBoxLayout" name="cardLayout">
+           <property name="spacing"><number>6</number></property>
+           <property name="leftMargin"><number>28</number></property>
+           <property name="topMargin"><number>30</number></property>
+           <property name="rightMargin"><number>28</number></property>
+           <property name="bottomMargin"><number>28</number></property>
 
-    <!-- Icon placeholder / brand mark -->
-    <widget class="QLabel" name="label_icon">
-     <property name="geometry"><rect><x>155</x><y>22</y><width>50</width><height>50</height></rect></property>
-        <property name="text"><string/></property>
-        <property name="pixmap">
-         <pixmap>/Users/andriefendy/MyProject/Desktop-Based-Cashier-Application/Logo.png</pixmap>
-        </property>
-        <property name="scaledContents"><bool>true</bool></property>
-     <property name="styleSheet"><string notr="true">font-size: 32px; background: transparent;</string></property>
-     <property name="alignment"><set>Qt::AlignCenter</set></property>
+           <item alignment="Qt::AlignHCenter">
+            <widget class="QLabel" name="label_icon">
+             <property name="minimumSize"><size><width>56</width><height>56</height></size></property>
+             <property name="maximumSize"><size><width>56</width><height>56</height></size></property>
+             <property name="text"><string/></property>
+             <property name="pixmap">
+              <pixmap>Logo.png</pixmap>
+             </property>
+             <property name="scaledContents"><bool>true</bool></property>
+             <property name="styleSheet"><string notr="true">background: transparent;</string></property>
+             <property name="alignment"><set>Qt::AlignCenter</set></property>
+            </widget>
+           </item>
+
+           <item>
+            <spacer name="spacerIcon">
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeType"><enum>QSizePolicy::Fixed</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>14</height></size></property>
+            </spacer>
+           </item>
+
+           <item>
+            <widget class="QLabel" name="label_title">
+             <property name="text"><string>Selamat Datang</string></property>
+             <property name="alignment"><set>Qt::AlignCenter</set></property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_sub">
+             <property name="text"><string>Masuk ke sistem kasir Anda</string></property>
+             <property name="alignment"><set>Qt::AlignCenter</set></property>
+             <property name="wordWrap"><bool>true</bool></property>
+            </widget>
+           </item>
+
+           <item>
+            <spacer name="spacerTitle">
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeType"><enum>QSizePolicy::Fixed</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>16</height></size></property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QFrame" name="divider_login">
+             <property name="frameShape"><enum>QFrame::HLine</enum></property>
+             <property name="frameShadow"><enum>QFrame::Plain</enum></property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="spacerDivider">
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeType"><enum>QSizePolicy::Fixed</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>16</height></size></property>
+            </spacer>
+           </item>
+
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="text"><string>USERNAME</string></property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="emailfield">
+             <property name="minimumSize"><size><width>0</width><height>42</height></size></property>
+             <property name="placeholderText"><string>Masukkan username...</string></property>
+             <property name="clearButtonEnabled"><bool>true</bool></property>
+            </widget>
+           </item>
+
+           <item>
+            <spacer name="spacerUser">
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeType"><enum>QSizePolicy::Fixed</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+            </spacer>
+           </item>
+
+           <item>
+            <widget class="QLabel" name="label_4">
+             <property name="text"><string>PASSWORD</string></property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="passwordRow">
+             <property name="spacing"><number>8</number></property>
+             <item>
+              <widget class="QLineEdit" name="passwordfield">
+               <property name="minimumSize"><size><width>0</width><height>42</height></size></property>
+               <property name="placeholderText"><string>Masukkan password...</string></property>
+               <property name="echoMode"><enum>QLineEdit::Password</enum></property>
+               <property name="text"><string/></property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="toggle_password">
+               <property name="minimumSize"><size><width>62</width><height>42</height></size></property>
+               <property name="maximumSize"><size><width>62</width><height>42</height></size></property>
+               <property name="text"><string>Show</string></property>
+               <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+               <property name="toolTip"><string>Tampilkan password</string></property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+
+           <item>
+            <widget class="QLabel" name="error">
+             <property name="minimumSize"><size><width>0</width><height>18</height></size></property>
+             <property name="text"><string/></property>
+             <property name="alignment"><set>Qt::AlignCenter</set></property>
+             <property name="wordWrap"><bool>true</bool></property>
+            </widget>
+           </item>
+
+           <item>
+            <spacer name="spacerBeforeButton">
+             <property name="orientation"><enum>Qt::Vertical</enum></property>
+             <property name="sizeType"><enum>QSizePolicy::Fixed</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>20</width><height>8</height></size></property>
+            </spacer>
+           </item>
+
+           <item>
+            <widget class="QPushButton" name="masuk">
+             <property name="minimumSize"><size><width>0</width><height>46</height></size></property>
+             <property name="text"><string>Masuk  →</string></property>
+             <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+             <property name="default"><bool>true</bool></property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="spacerRight">
+          <property name="orientation"><enum>Qt::Horizontal</enum></property>
+          <property name="sizeHint" stdset="0"><size><width>10</width><height>20</height></size></property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="spacerBottom">
+        <property name="orientation"><enum>Qt::Vertical</enum></property>
+        <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+       </spacer>
+      </item>
+     </layout>
     </widget>
-
-    <!-- Title -->
-    <widget class="QLabel" name="label_title">
-     <property name="geometry"><rect><x>20</x><y>78</y><width>320</width><height>36</height></rect></property>
-     <property name="text"><string>Selamat Datang</string></property>
-     <property name="alignment"><set>Qt::AlignCenter</set></property>
-    </widget>
-
-    <!-- Subtitle -->
-    <widget class="QLabel" name="label_sub">
-     <property name="geometry"><rect><x>20</x><y>114</y><width>320</width><height>22</height></rect></property>
-     <property name="text"><string>Masuk ke sistem kasir Anda</string></property>
-     <property name="alignment"><set>Qt::AlignCenter</set></property>
-    </widget>
-
-    <!-- User label -->
-    <widget class="QLabel" name="label_3">
-     <property name="geometry"><rect><x>24</x><y>152</y><width>200</width><height>18</height></rect></property>
-     <property name="text"><string>USERNAME</string></property>
-    </widget>
-
-    <!-- Username input -->
-    <widget class="QLineEdit" name="emailfield">
-     <property name="geometry"><rect><x>24</x><y>172</y><width>312</width><height>42</height></rect></property>
-     <property name="placeholderText"><string>Masukkan username...</string></property>
-    </widget>
-
-    <!-- Password label -->
-    <widget class="QLabel" name="label_4">
-     <property name="geometry"><rect><x>24</x><y>226</y><width>200</width><height>18</height></rect></property>
-     <property name="text"><string>PASSWORD</string></property>
-    </widget>
-
-    <!-- Password input -->
-    <widget class="QLineEdit" name="passwordfield">
-     <property name="geometry"><rect><x>24</x><y>246</y><width>312</width><height>42</height></rect></property>
-     <property name="placeholderText"><string>Masukkan password...</string></property>
-     <property name="echoMode"><enum>QLineEdit::Password</enum></property>
-     <property name="text"><string/></property>
-    </widget>
-
-    <!-- Show/hide password -->
-    <widget class="QPushButton" name="toggle_password">
-     <property name="geometry"><rect><x>278</x><y>246</y><width>58</width><height>42</height></rect></property>
-     <property name="text"><string>Show</string></property>
-     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
-     <property name="toolTip"><string>Tampilkan password</string></property>
-    </widget>
-
-    <!-- Error label -->
-    <widget class="QLabel" name="error">
-     <property name="geometry"><rect><x>24</x><y>296</y><width>312</width><height>18</height></rect></property>
-     <property name="text"><string/></property>
-     <property name="alignment"><set>Qt::AlignCenter</set></property>
-    </widget>
-
-    <!-- Login button -->
-    <widget class="QPushButton" name="masuk">
-     <property name="geometry"><rect><x>24</x><y>316</y><width>312</width><height>44</height></rect></property>
-     <property name="text"><string>Masuk →</string></property>
-     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
-    </widget>
-
-   </widget>
-  </widget>
+   </item>
+  </layout>
  </widget>
+ <tabstops>
+  <tabstop>emailfield</tabstop>
+  <tabstop>passwordfield</tabstop>
+  <tabstop>toggle_password</tabstop>
+  <tabstop>masuk</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

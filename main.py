@@ -952,9 +952,8 @@ class kasir(QDialog):
             self._fallback.show()
         self.close()
 
-
 # ─────────────────────────────────────────────
-#  DAFTAR MENU
+#  DAFTAR MENU  (dengan fitur search berdasarkan kode/ID Menu)
 # ─────────────────────────────────────────────
 class DftrMenu(QDialog):
     def __init__(self):
@@ -964,8 +963,9 @@ class DftrMenu(QDialog):
         self.resize(min(980, available.width()), min(660, available.height()))
         _setup_responsive_scaling(self, self.widget, 980, 660)
         self.center()
-        self._simpan_mode = 'baru'   # tambahkan
-        self._edit_mode = 'view'     # tambahkan
+        self._simpan_mode = 'baru'
+        self._edit_mode = 'view'
+        self._all_data = []          # <-- cache semua data menu untuk difilter
         self.tombol()
         self.tabelWidtg()
         self.loaddata()
@@ -988,6 +988,8 @@ class DftrMenu(QDialog):
         self.tableWidget.clicked.connect(self.getitem)
         self.hapus.clicked.connect(self.hapusData)
         self.simpan.clicked.connect(self.simpandata)
+        # Hubungkan kotak pencarian -> filter berdasarkan kode (idMenu) ATAU nama menu
+        self.textSearchMenu.textChanged.connect(self.filter_data)
 
     def tabelWidtg(self):
         header = self.tableWidget.horizontalHeader()
@@ -1000,14 +1002,38 @@ class DftrMenu(QDialog):
         result = curr.fetchall()
         curr.close()
         conn.close()
-        self.tableWidget.setRowCount(len(result))
-        for row, item in enumerate(result):
+
+        # simpan semua data mentah untuk keperluan filter/search
+        self._all_data = result
+
+        # tampilkan sesuai kata kunci yang sedang ada di kotak search (kalau ada)
+        keyword = self.textSearchMenu.text() if hasattr(self, 'textSearchMenu') else ""
+        self._render_table(self._filter_by_keyword(keyword))
+
+    def _filter_by_keyword(self, keyword):
+        """Filter self._all_data berdasarkan idMenu (kode) ATAU namaMenu yang mengandung keyword.
+        row = (idMenu, kategori, namaMenu, harga, stock)"""
+        keyword = (keyword or "").strip().lower()
+        if not keyword:
+            return self._all_data
+        return [
+            row for row in self._all_data
+            if keyword in str(row[0]).lower() or keyword in str(row[2]).lower()
+        ]
+
+    def _render_table(self, rows):
+        self.tableWidget.setRowCount(len(rows))
+        for row, item in enumerate(rows):
             self.tableWidget.setItem(row, 0, QtWidgets.QTableWidgetItem(str(item[0])))
             self.tableWidget.setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[1])))
             self.tableWidget.setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[2])))
             self.tableWidget.setItem(row, 3, QtWidgets.QTableWidgetItem(str(item[3])))
             if self.tableWidget.columnCount() > 4:
                 self.tableWidget.setItem(row, 4, QtWidgets.QTableWidgetItem(str(item[4])))
+
+    def filter_data(self, keyword):
+        """Dipanggil setiap kali teks di kotak search berubah."""
+        self._render_table(self._filter_by_keyword(keyword))
 
     def clearform(self):
         self.textIdMenu.setFocus()
@@ -1117,7 +1143,7 @@ class DftrMenu(QDialog):
 
         max_num = 0
         prefix  = ''
-        width   = 3   # default lebar angka, misal 001, 002, dst
+        width   = 3
 
         for (idm,) in rows:
             idm = str(idm)
@@ -1133,7 +1159,6 @@ class DftrMenu(QDialog):
         next_num = max_num + 1
         new_id   = f"{prefix}{next_num:0{width}d}"
 
-        # Jaga-jaga kalau kolom idMenu maksimal 5 karakter
         if len(new_id) > 5:
             new_id = new_id[-5:]
 
@@ -1143,7 +1168,7 @@ class DftrMenu(QDialog):
         if self._simpan_mode == 'baru':
             self.activeText(True)
             self.clearform()
-            self.textIdMenu.setText(self.generate_next_id())   # <-- auto generate di sini
+            self.textIdMenu.setText(self.generate_next_id())
             self.simpan.setText('💾  Simpan')
             self._simpan_mode = 'save'
         elif self._simpan_mode == 'save':
@@ -1180,7 +1205,6 @@ class DftrMenu(QDialog):
                 QMessageBox.critical(self, "Database Error", f"Gagal simpan data: {e}")
                 return
             except mysql.connector.IntegrityError:
-                # Kalau ID bentrok (race condition), coba generate ulang sekali
                 QMessageBox.warning(self, "Perhatian", "ID sudah dipakai, mencoba ID baru...")
                 self.textIdMenu.setText(self.generate_next_id())
                 return
@@ -1190,7 +1214,6 @@ class DftrMenu(QDialog):
                     conn.close()
                 except Exception:
                     pass
-
             self.loaddata()
             self.activeText(False)
             self.clearform()
@@ -1201,8 +1224,6 @@ class DftrMenu(QDialog):
         self.openkasir = Pilihan()
         self.openkasir.show()
         self.close()
-
-
 # ─────────────────────────────────────────────
 #  LAPORAN
 # ─────────────────────────────────────────────
