@@ -1235,6 +1235,12 @@ class Laporan(QDialog):
     def __init__(self):
         super().__init__()
         uic.loadUi("Data.ui", self)
+        self.setWindowFlags(
+            Qt.Window |
+            Qt.WindowMinimizeButtonHint |
+            Qt.WindowMaximizeButtonHint |
+            Qt.WindowCloseButtonHint
+        )
         available = QDesktopWidget().availableGeometry()
         self.resize(min(936, available.width()), min(668, available.height()))
         self.center()
@@ -1506,16 +1512,36 @@ class Laporan(QDialog):
             QMessageBox.critical(self, "Error", "Gagal memulai proses cetak.")
             return
 
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.TextAntialiasing)
+
+        # ── Semua ukuran dikonversi dari "poin" ke unit device sesuai DPI printer.
+        # Ini kunci perbaikannya: sebelumnya margin/line_height memakai angka
+        # piksel mentah (55, 30, dst) yang jauh lebih kecil daripada resolusi
+        # QPrinter.HighResolution (bisa >1000 DPI), sehingga baris jadi lebih
+        # pendek daripada tinggi font -> teks saling tumpang tindih ("gempet").
+        dpi = printer.resolution()
+
+        def pt(points):
+            return int(points * dpi / 72)
+
         page = printer.pageRect()
-        margin = 55
+        margin = pt(40)
         content_width = page.width() - (margin * 2)
-        line_height = 30
-        title_font = QFont("Segoe UI", 16)
-        title_font.setBold(True)
-        bold_font = QFont("Segoe UI", 10)
-        bold_font.setBold(True)
+
+        title_font  = QFont("Segoe UI", 16); title_font.setBold(True)
+        sub_font    = QFont("Segoe UI", 10)
+        bold_font   = QFont("Segoe UI", 10); bold_font.setBold(True)
         normal_font = QFont("Segoe UI", 10)
-        small_font = QFont("Segoe UI", 9)
+        small_font  = QFont("Segoe UI", 9)
+
+        title_h  = pt(26)
+        sub_h    = pt(20)
+        gap_after_heading = pt(14)
+        header_row_h = pt(30)
+        row_h    = pt(26)
+        row_pad  = pt(4)
+
         dari, sampai = self._rentang_tanggal_aktif()
         grouped_rows = self._kelompokkan_pendapatan(rows)
         total = sum(values[2] for _, values in grouped_rows)
@@ -1529,36 +1555,39 @@ class Laporan(QDialog):
         columns = list(columns)
         columns[-1] = (columns[-1][0], content_width - sum(column[1] for column in columns[:-1]), columns[-1][2])
 
-        def draw_cell(text, x, width, alignment, font):
+        cell_pad = pt(8)
+
+        def draw_cell(text, x, width, alignment, font, row_top, row_height):
             painter.setFont(font)
-            painter.drawText(x + 8, y, width - 16, line_height, alignment | Qt.AlignVCenter, str(text))
+            painter.drawText(x + cell_pad, row_top, width - cell_pad * 2, row_height,
+                              alignment | Qt.AlignVCenter, str(text))
 
         def draw_table_header():
             nonlocal y
+            painter.fillRect(margin, y, content_width, header_row_h, QtGui.QColor("#e8eefc"))
             painter.setPen(QtGui.QColor("#1e40af"))
-            painter.fillRect(margin, y - 4, content_width, line_height + 8, QtGui.QColor("#e8eefc"))
             x = margin
             for title, width, alignment in columns:
-                draw_cell(title, x, width, alignment, bold_font)
+                draw_cell(title, x, width, alignment, bold_font, y, header_row_h)
                 x += width
-            y += line_height + 8
+            y += header_row_h
             painter.setPen(QtGui.QColor("#9ca3af"))
             painter.drawLine(margin, y, margin + content_width, y)
-            y += 4
+            y += pt(6)
 
         def draw_page_heading():
             nonlocal y
             y = margin
             painter.setPen(QtGui.QColor("#111827"))
             painter.setFont(title_font)
-            painter.drawText(margin, y, content_width, 28, Qt.AlignLeft | Qt.AlignVCenter, "LAPORAN PENDAPATAN")
-            y += 32
-            painter.setFont(normal_font)
+            painter.drawText(margin, y, content_width, title_h, Qt.AlignLeft | Qt.AlignVCenter, "LAPORAN PENDAPATAN")
+            y += title_h
+            painter.setFont(sub_font)
             painter.drawText(
-                margin, y, content_width, 22, Qt.AlignLeft | Qt.AlignVCenter,
+                margin, y, content_width, sub_h, Qt.AlignLeft | Qt.AlignVCenter,
                 f"Filter: {self.cb_filter.currentText()}    Periode: {dari[:10]} s/d {sampai[:10]}"
             )
-            y += 34
+            y += sub_h + gap_after_heading
             draw_table_header()
 
         def draw_data_row(periode, values):
@@ -1566,37 +1595,41 @@ class Laporan(QDialog):
             x = margin
             row_data = (periode, values[0], f"{values[1]:,.0f}", f"Rp {values[2]:,.0f}")
             for text, (_, width, alignment) in zip(row_data, columns):
-                draw_cell(text, x, width, alignment, normal_font)
+                draw_cell(text, x, width, alignment, normal_font, y, row_h)
                 x += width
-            y += line_height
+            y += row_h
             painter.setPen(QtGui.QColor("#d1d5db"))
             painter.drawLine(margin, y, margin + content_width, y)
-            y += 2
+            y += row_pad
 
+        y = margin
         draw_page_heading()
         for periode, values in grouped_rows:
-            if y + line_height > page.bottom() - margin:
+            if y + row_h > page.bottom() - margin:
                 printer.newPage()
                 page = printer.pageRect()
                 draw_page_heading()
             draw_data_row(periode, values)
 
-        if y + line_height * 2 > page.bottom() - margin:
+        footer_h = pt(50)
+        if y + footer_h > page.bottom() - margin:
             printer.newPage()
             page = printer.pageRect()
             draw_page_heading()
+
+        y += pt(10)
         painter.setFont(bold_font)
         painter.setPen(QtGui.QColor("#111827"))
         painter.drawText(
-            margin, y + 12, content_width, line_height,
+            margin, y, content_width, row_h,
             Qt.AlignRight | Qt.AlignVCenter,
             f"TOTAL PENDAPATAN: Rp {total:,.0f}"
         )
-        y += line_height * 2
+
         painter.setFont(small_font)
         painter.setPen(QtGui.QColor("#6b7280"))
         painter.drawText(
-            margin, page.bottom() - margin, content_width, 20,
+            margin, page.bottom() - margin - pt(20), content_width, pt(20),
             Qt.AlignRight | Qt.AlignVCenter,
             "Dicetak dari aplikasi kasir"
         )
@@ -1659,31 +1692,6 @@ class Laporan(QDialog):
 # ─────────────────────────────────────────────
 #  ENTRY POINT
 # ─────────────────────────────────────────────
-# if __name__ == "__main__":
-#     app = QtWidgets.QApplication(sys.argv)
-#     app.setStyleSheet("""
-#         QMessageBox {
-#             background-color: #1a1f2e;
-#         }
-#         QMessageBox QLabel {
-#             color: #f1f5f9;
-#             font-size: 13px;
-#         }
-#         QMessageBox QPushButton {
-#             background-color: #1e40af;
-#             color: #e0f2fe;
-#             border-radius: 6px;
-#             padding: 6px 16px;
-#             min-width: 70px;
-#         }
-#         QMessageBox QPushButton:hover {
-#             background-color: #2563eb;
-#         }
-#     """)
-#     window = login()
-#     window.show()
-#     sys.exit(app.exec_())
-
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet("""

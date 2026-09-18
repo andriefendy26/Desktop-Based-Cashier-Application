@@ -60,27 +60,43 @@ QLineEdit:focus {
     border-color: #2563eb;
     background-color: #ffffff;
 }
-
-/* ── ComboBox ── */
+/* ── ComboBox (seperti tombol select) ── */
 QComboBox {
     background-color: #f0f6ff;
     border: 1.5px solid #bfdbfe;
     border-radius: 10px;
     padding: 9px 13px;
+    padding-right: 32px;
     color: #1e293b;
     font-size: 13px;
+    combobox-popup: 0;
 }
-QComboBox:focus { border-color: #2563eb; }
+QComboBox:hover {
+    border-color: #60a5fa;
+    background-color: #ffffff;
+}
+QComboBox:focus,
+QComboBox:on {
+    border-color: #2563eb;
+    background-color: #ffffff;
+}
+QComboBox:disabled {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+}
 QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
     border: none;
-    width: 24px;
+    width: 32px;
 }
 QComboBox::down-arrow {
     image: none;
     border-left: 5px solid transparent;
     border-right: 5px solid transparent;
     border-top: 6px solid #2563eb;
-    margin-right: 8px;
+    margin-right: 10px;
 }
 QComboBox QAbstractItemView {
     background-color: #ffffff;
@@ -88,7 +104,12 @@ QComboBox QAbstractItemView {
     border-radius: 8px;
     color: #1e293b;
     selection-background-color: #dbeafe;
+    selection-color: #1e3a8a;
     outline: none;
+}
+QComboBox QAbstractItemView::item {
+    min-height: 30px;
+    padding: 4px 12px;
 }
 
 /* ── Table ── */
@@ -213,8 +234,8 @@ QPushButton#keluar:hover { border-color: #2563eb; color: #ffffff; background-col
     </widget>
     <widget class="QComboBox" name="cbKategori">
      <property name="geometry"><rect><x>20</x><y>152</y><width>240</width><height>34</height></rect></property>
-     <property name="editable"><bool>true</bool></property>
-     <property name="currentText"><string>Makanan</string></property>
+     <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+     <property name="editable"><bool>false</bool></property>
      <item><property name="text"><string>Makanan</string></property></item>
      <item><property name="text"><string>Minuman</string></property></item>
     </widget>
