@@ -179,13 +179,14 @@ QPushButton#keluar:pressed { background-color: #1e3a8a; }
 /* ─── Table Widgets ─── */
 QTableWidget {
     background-color: #ffffff;
-    border: 1px solid #bfdbfe;
-    border-radius: 10px;
-    gridline-color: #e5edfb;
+    alternate-background-color: #f5f8fd;
+    border: 1px solid #e0e7f2;
+    border-radius: 12px;
+    gridline-color: #eef2f8;
     color: #1e293b;
     font-size: 13px;
-    selection-background-color: #dbeafe;
-    selection-color: #1e3a8a;
+    selection-background-color: #e7effb;
+    selection-color: #14306b;
     outline: none;
 }
 

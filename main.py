@@ -68,7 +68,6 @@ def get_connection():
         use_pure=True
     )
 
-
 # ─────────────────────────────────────────────
 #  DIALOG EDIT JUMLAH (untuk fitur edit keranjang)
 # ─────────────────────────────────────────────
@@ -81,28 +80,31 @@ class EditJumlahDialog(QDialog):
         self.stock_maks = stock_maks
         self.setStyleSheet("""
             QDialog {
-                background-color: #1a1f2e;
-                border: 1px solid #2d3548;
+                background-color: #eef3fa;
+                border: 1px solid #e0e7f2;
                 border-radius: 14px;
             }
             QLabel#lbl_title {
-                color: #38bdf8;
+                color: #14306b;
                 font-size: 15px;
                 font-weight: 700;
+                background: transparent;
             }
             QLabel#lbl_sub {
-                color: #94a3b8;
+                color: #6b7a90;
                 font-size: 12px;
+                background: transparent;
             }
             QLabel#lbl_field {
-                color: #94a3b8;
+                color: #6b7a90;
                 font-size: 12px;
+                background: transparent;
             }
             QSpinBox {
-                background-color: #252d3d;
-                border: 1.5px solid #38bdf8;
+                background-color: #ffffff;
+                border: 1.5px solid #2563eb;
                 border-radius: 8px;
-                color: #f1f5f9;
+                color: #1e293b;
                 font-size: 18px;
                 font-weight: 700;
                 padding: 6px 10px;
@@ -112,10 +114,10 @@ class EditJumlahDialog(QDialog):
                 width: 0; border: none;
             }
             QPushButton#btn_minus, QPushButton#btn_plus {
-                background-color: #252d3d;
-                border: 1px solid #2d3548;
+                background-color: #f5f8fd;
+                border: 1px solid #d5e0ef;
                 border-radius: 8px;
-                color: #38bdf8;
+                color: #2563eb;
                 font-size: 20px;
                 font-weight: 700;
                 min-width: 38px;
@@ -123,34 +125,35 @@ class EditJumlahDialog(QDialog):
                 padding: 0;
             }
             QPushButton#btn_minus:hover, QPushButton#btn_plus:hover {
-                background-color: #1e3a5f;
+                background-color: #e7effb;
+                border-color: #2563eb;
             }
             QPushButton#btn_minus:pressed, QPushButton#btn_plus:pressed {
-                background-color: #1e40af;
+                background-color: #d8e5f8;
             }
             QPushButton#btn_ok {
-                background-color: #059669;
+                background-color: #2563eb;
                 border: none;
                 border-radius: 8px;
-                color: #ecfdf5;
+                color: #ffffff;
                 font-size: 13px;
                 font-weight: 700;
                 padding: 9px 0;
                 min-height: 38px;
             }
-            QPushButton#btn_ok:hover  { background-color: #10b981; }
-            QPushButton#btn_ok:pressed { background-color: #047857; }
+            QPushButton#btn_ok:hover   { background-color: #1d4ed8; }
+            QPushButton#btn_ok:pressed { background-color: #1b3fae; }
             QPushButton#btn_batal {
-                background-color: #374151;
-                border: 1px solid #4b5563;
+                background-color: #f4f6f9;
+                border: 1px solid #dfe5ec;
                 border-radius: 8px;
-                color: #d1d5db;
+                color: #475569;
                 font-size: 13px;
                 font-weight: 600;
                 padding: 9px 0;
                 min-height: 38px;
             }
-            QPushButton#btn_batal:hover { background-color: #4b5563; }
+            QPushButton#btn_batal:hover { background-color: #e9edf3; color: #1e293b; }
         """)
 
         layout = QVBoxLayout(self)
@@ -160,7 +163,7 @@ class EditJumlahDialog(QDialog):
         lbl_title = QLabel("✏  Edit Jumlah")
         lbl_title.setObjectName("lbl_title")
 
-        lbl_sub = QLabel(f"Item: <b style='color:#f1f5f9'>{nama_item}</b>")
+        lbl_sub = QLabel(f"Item: <b style='color:#14306b'>{nama_item}</b>")
         lbl_sub.setObjectName("lbl_sub")
         lbl_sub.setTextFormat(Qt.RichText)
 
@@ -221,8 +224,6 @@ class EditJumlahDialog(QDialog):
 
     def get_value(self):
         return self.spin.value()
-
-
 # ─────────────────────────────────────────────
 #  LOGIN
 # ─────────────────────────────────────────────
@@ -230,6 +231,12 @@ class login(QDialog):
     def __init__(self):
         super().__init__()
         uic.loadUi("Login.ui", self)
+        self.setWindowFlags(
+            Qt.Window |
+            Qt.WindowMinimizeButtonHint |
+            Qt.WindowMaximizeButtonHint |
+            Qt.WindowCloseButtonHint
+        )
         self.center()
         self.masuk.clicked.connect(self.loginfungsion)
         self.toggle_password.clicked.connect(self.toggle_password_visibility)
@@ -429,10 +436,7 @@ class kasir(QDialog):
         table.setEditTriggers(QTableWidget.NoEditTriggers)
         table.verticalHeader().setVisible(False)
         table.setAlternatingRowColors(True)
-        table.setStyleSheet(
-            table.styleSheet() +
-            "QTableWidget { alternate-background-color: #1e2538; }"
-        )
+        # tidak perlu setStyleSheet manual lagi — biarkan mengikuti .ui
 
     def tableWidgt(self):
         self._setup_table(self.table_makanan)
@@ -1655,25 +1659,50 @@ class Laporan(QDialog):
 # ─────────────────────────────────────────────
 #  ENTRY POINT
 # ─────────────────────────────────────────────
+# if __name__ == "__main__":
+#     app = QtWidgets.QApplication(sys.argv)
+#     app.setStyleSheet("""
+#         QMessageBox {
+#             background-color: #1a1f2e;
+#         }
+#         QMessageBox QLabel {
+#             color: #f1f5f9;
+#             font-size: 13px;
+#         }
+#         QMessageBox QPushButton {
+#             background-color: #1e40af;
+#             color: #e0f2fe;
+#             border-radius: 6px;
+#             padding: 6px 16px;
+#             min-width: 70px;
+#         }
+#         QMessageBox QPushButton:hover {
+#             background-color: #2563eb;
+#         }
+#     """)
+#     window = login()
+#     window.show()
+#     sys.exit(app.exec_())
+
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet("""
         QMessageBox {
-            background-color: #1a1f2e;
+            background-color: #eef3fa;
         }
         QMessageBox QLabel {
-            color: #f1f5f9;
+            color: #1e293b;
             font-size: 13px;
         }
         QMessageBox QPushButton {
-            background-color: #1e40af;
-            color: #e0f2fe;
+            background-color: #2563eb;
+            color: #ffffff;
             border-radius: 6px;
             padding: 6px 16px;
             min-width: 70px;
         }
         QMessageBox QPushButton:hover {
-            background-color: #2563eb;
+            background-color: #1d4ed8;
         }
     """)
     window = login()
