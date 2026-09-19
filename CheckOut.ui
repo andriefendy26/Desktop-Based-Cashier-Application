@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1734</width>
-    <height>859</height>
+    <width>1512</width>
+    <height>846</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -52,7 +52,7 @@ QLabel#label_6, QLabel#label_7, QLabel#label_8 {
 }
 
 QLabel#lbl_makanan {
-    color: #2563eb;
+    color: #eb2525;
     font-size: 13px;
     font-weight: 700;
     background: transparent;
@@ -275,13 +275,13 @@ QFrame#line, QFrame#line_2 {
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>20</y>
+      <y>10</y>
       <width>300</width>
       <height>30</height>
      </rect>
     </property>
     <property name="text">
-     <string>📋  Daftar Menus</string>
+     <string>📋  Daftar Menu</string>
     </property>
    </widget>
    <widget class="QLabel" name="lbl_makanan">

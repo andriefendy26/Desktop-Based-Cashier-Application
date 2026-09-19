@@ -7,6 +7,7 @@ from PyQt5.QtCore import Qt, QDate
 from PyQt5.QtWidgets import (QVBoxLayout, QHBoxLayout,
                              QLabel, QSpinBox, QPushButton, QDateEdit)
 import sys
+import re
 from datetime import datetime, time
 import mysql.connector
 import matplotlib
@@ -24,6 +25,47 @@ CHART_GRID  = '#e5edfb'
 CHART_AXIS  = '#bfdbfe'
 CHART_COLOR = {'Harian': '#3b82f6', 'Mingguan': '#38bdf8', 'Tahunan': '#818cf8'}
 
+
+# ─────────────────────────────────────────────
+#  FORMAT MATA UANG (Rupiah / format Indonesia)
+# ─────────────────────────────────────────────
+def fmt_rp(value, prefix="Rp "):
+    """1500000 -> 'Rp 1.500.000' (pemisah ribuan titik, gaya Indonesia)."""
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return str(value)
+    return f"{prefix}{v:,.0f}".replace(",", ".")
+
+
+def fmt_ribuan(value):
+    """1500000 -> '1.500.000' (tanpa prefix Rp)."""
+    return fmt_rp(value, prefix="")
+
+
+def parse_angka(text, default=0.0):
+    """Kebalikan fmt_rp: 'Rp 1.500.000' -> 1500000.0
+    Aman dipakai untuk teks yang sudah maupun belum terformat."""
+    if text is None:
+        return default
+    if isinstance(text, (int, float)):
+        return float(text)
+    s = re.sub(r'[^\d\-]', '', str(text))
+    if s in ('', '-'):
+        return default
+    try:
+        return float(s)
+    except ValueError:
+        return default
+
+
+def item_rp(value):
+    """QTableWidgetItem berisi nominal terformat, rata kanan."""
+    it = QtWidgets.QTableWidgetItem(fmt_rp(value))
+    it.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+    return it
+
+
 def _fmt_singkat(v, _pos=None):
     """1.500.000 -> 1.5jt, supaya label sumbu Y tidak memenuhi chart."""
     if v >= 1_000_000_000: return f"{v/1_000_000_000:g}M"
@@ -31,8 +73,30 @@ def _fmt_singkat(v, _pos=None):
     if v >= 1_000:         return f"{v/1_000:g}rb"
     return f"{v:g}"
 
+
+def pasang_format_uang(line_edit):
+    """Buat QLineEdit otomatis menampilkan pemisah ribuan saat diketik.
+    Nilai aslinya diambil kembali dengan parse_angka(line_edit.text())."""
+    def _on_text_changed(text):
+        digits = re.sub(r'\D', '', text)
+        baru = f"{int(digits):,}".replace(",", ".") if digits else ""
+        if baru != text:
+            line_edit.blockSignals(True)
+            line_edit.setText(baru)
+            line_edit.blockSignals(False)
+            line_edit.setCursorPosition(len(baru))
+
+    line_edit.textChanged.connect(_on_text_changed)
+    line_edit.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+
+
 def _setup_responsive_scaling(window, content, base_width, base_height):
-    """Capture the fixed UI geometry so it can scale with the dialog."""
+    """Capture the fixed UI geometry so it can scale with the dialog.
+
+    CATATAN PENTING:
+    Widget yang dibuat lewat kode (bukan dari .ui) WAJIB diberi setObjectName(),
+    karena filter di bawah melewati widget tanpa objectName.
+    """
     nodes = {content: (content, content.geometry())}
     for child in content.findChildren(QtWidgets.QWidget):
         if child.objectName() and not child.objectName().startswith('qt_'):
@@ -52,6 +116,7 @@ def _apply_responsive_scaling(window):
     base_width, base_height = window._responsive_base_size
     scale = min(window.width() / base_width, window.height() / base_height)
     scale = max(scale, 0.25)
+    window._responsive_scale = scale  # dipakai oleh _apply_custom_label_fonts
     content_width = max(1, round(base_width * scale))
     content_height = max(1, round(base_height * scale))
     content_x = max(0, (window.width() - content_width) // 2)
@@ -71,6 +136,23 @@ def _apply_responsive_scaling(window):
         )
 
 
+def _apply_custom_label_fonts(window):
+    """Skalakan ukuran font label judul tertentu (mis. 'Daftar Menu', 'Makanan',
+    'Minuman', 'Keranjang Belanja') mengikuti faktor scale window, tanpa
+    mengubah label lain. base_px adalah ukuran dasar sedikit lebih besar
+    dari bawaan .ui, lalu ikut mengecil/membesar saat window di-resize."""
+    fonts = getattr(window, '_custom_label_fonts', None)
+    if not fonts:
+        return
+    scale = getattr(window, '_responsive_scale', 1.0)
+    for widget, (base_px, color) in fonts.items():
+        size = max(9, round(base_px * scale))
+        widget.setStyleSheet(
+            f"QLabel {{ color: {color}; font-size: {size}px; "
+            f"font-weight: 700; background: transparent; }}"
+        )
+
+
 # ─────────────────────────────────────────────
 #  DATABASE CONNECTION
 # ─────────────────────────────────────────────
@@ -82,6 +164,88 @@ def get_connection():
         database='warungme',
         use_pure=True
     )
+
+
+# ─────────────────────────────────────────────
+#  SELECT DATE EDIT  (tanggal berperilaku seperti tombol select)
+# ─────────────────────────────────────────────
+class SelectDateEdit(QDateEdit):
+    """QDateEdit yang berperilaku seperti tombol select/combobox:
+    klik di area mana pun langsung membuka kalender, teks tidak bisa diketik manual."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setCalendarPopup(True)
+        self.setReadOnly(True)
+        self.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.setFocusPolicy(Qt.StrongFocus)
+
+    def mousePressEvent(self, event):
+        if self.calendarPopup() and event.button() == Qt.LeftButton:
+            opt = QtWidgets.QStyleOptionSpinBox()
+            self.initStyleOption(opt)
+            rect = self.style().subControlRect(
+                QtWidgets.QStyle.CC_SpinBox, opt,
+                QtWidgets.QStyle.SC_SpinBoxUp, self)
+            fake = QtGui.QMouseEvent(event.type(), rect.center(),
+                                     Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
+            super().mousePressEvent(fake)
+            return
+        super().mousePressEvent(event)
+
+
+STYLE_SELECT_DATE = """
+QDateEdit {
+    background-color: #f0f6ff;
+    border: 1.5px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 4px 10px;
+    color: #1e293b;
+    font-size: 13px;
+}
+QDateEdit:hover { border-color: #60a5fa; background-color: #ffffff; }
+QDateEdit:focus, QDateEdit:on { border-color: #2563eb; background-color: #ffffff; }
+QDateEdit::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    border: none;
+    width: 28px;
+}
+QDateEdit::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #2563eb;
+    margin-right: 8px;
+}
+QCalendarWidget QWidget { background-color: #ffffff; }
+QCalendarWidget QAbstractItemView:enabled {
+    background-color: #ffffff;
+    color: #1e293b;
+    selection-background-color: #dbeafe;
+    selection-color: #1e3a8a;
+    outline: none;
+}
+QCalendarWidget QToolButton {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-weight: 600;
+}
+QCalendarWidget QToolButton:hover { background-color: #dbeafe; }
+QCalendarWidget QMenu { background-color: #ffffff; color: #1e293b; }
+QCalendarWidget QSpinBox {
+    background-color: #ffffff;
+    border: 1px solid #bfdbfe;
+    border-radius: 4px;
+    color: #1e293b;
+}
+"""
+
 
 # ─────────────────────────────────────────────
 #  DIALOG EDIT JUMLAH (untuk fitur edit keranjang)
@@ -239,6 +403,8 @@ class EditJumlahDialog(QDialog):
 
     def get_value(self):
         return self.spin.value()
+
+
 # ─────────────────────────────────────────────
 #  LOGIN
 # ─────────────────────────────────────────────
@@ -310,7 +476,7 @@ class login(QDialog):
 
 
 # ─────────────────────────────────────────────
-#  PILIHAN — sekarang ada 3 menu: Checkout, Daftar Menu, Laporan
+#  PILIHAN — Checkout, Daftar Menu, Laporan
 # ─────────────────────────────────────────────
 class Pilihan(QDialog):
     def __init__(self):
@@ -368,7 +534,7 @@ class Pilihan(QDialog):
         self.move(qr.topLeft())
 
     def tombol(self):
-        self.Checkout.clicked.connect(self.BukaCheckout)   # tombol baru
+        self.Checkout.clicked.connect(self.BukaCheckout)
         self.Menu.clicked.connect(self.Dftrmenu)
         self.Lprn.clicked.connect(self.Lapar)
         self.logout.clicked.connect(self.Keluar)
@@ -407,6 +573,16 @@ class kasir(QDialog):
         self.center()
         self.setWindowTitle("Check Out — Kasir")
 
+        # ── Judul "Daftar Menu" / "Keranjang Belanja" sedikit lebih besar,
+        # dan tetap menyesuaikan (mengecil/membesar) saat window di-resize.
+        self._custom_label_fonts = {
+            self.label_7:      (26, '#1d4ed8'),   # 📋 Daftar Menu
+            self.label_6:      (18, '#1d4ed8'),   # 🛍 Keranjang Belanja
+            self.lbl_makanan:  (18, '#0891b2'),   # 🍽 Makanan
+            self.lbl_minuman:  (18, '#0891b2'),   # 🥤 Minuman
+        }
+        _apply_custom_label_fonts(self)
+
         # Simpan referensi ke window Pilihan agar bisa kembali
         self._parent_pilihan = parent_pilihan
 
@@ -430,6 +606,10 @@ class kasir(QDialog):
         self.search_makanan.textChanged.connect(self.filter_makanan)
         self.search_minuman.textChanged.connect(self.filter_minuman)
 
+        # ── Format currency otomatis saat mengetik uang tunai pembayaran ──
+        pasang_format_uang(self.uangpembayaran)
+        self.uangpembayaran.setPlaceholderText("0")
+
         self.activeText(False)
         self.tableWidgt()
         self.loaddata()
@@ -437,6 +617,7 @@ class kasir(QDialog):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         _apply_responsive_scaling(self)
+        _apply_custom_label_fonts(self)
 
     def center(self):
         qr = self.frameGeometry()
@@ -444,19 +625,27 @@ class kasir(QDialog):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    def _setup_table(self, table):
+    # ── Kolom menyesuaikan isi supaya teks tidak terpotong ──
+    def _setup_table(self, table, stretch_col=None):
         h = table.horizontalHeader()
-        h.setSectionResizeMode(QHeaderView.Stretch)
+        h.setSectionResizeMode(QHeaderView.ResizeToContents)
+        if stretch_col is not None and stretch_col < table.columnCount():
+            h.setSectionResizeMode(stretch_col, QHeaderView.Stretch)
+        h.setMinimumSectionSize(70)
+        h.setStretchLastSection(False)
+
+        table.setWordWrap(False)
+        table.setTextElideMode(Qt.ElideNone)
+        table.setHorizontalScrollMode(QTableWidget.ScrollPerPixel)
         table.setSelectionBehavior(QTableWidget.SelectRows)
         table.setEditTriggers(QTableWidget.NoEditTriggers)
         table.verticalHeader().setVisible(False)
         table.setAlternatingRowColors(True)
-        # tidak perlu setStyleSheet manual lagi — biarkan mengikuti .ui
 
     def tableWidgt(self):
-        self._setup_table(self.table_makanan)
-        self._setup_table(self.table_minuman)
-        self._setup_table(self.table_2)
+        self._setup_table(self.table_makanan, stretch_col=2)  # kolom Nama
+        self._setup_table(self.table_minuman, stretch_col=2)  # kolom Nama
+        self._setup_table(self.table_2,       stretch_col=1)  # kolom Nama (keranjang)
 
     def activeText(self, enabled):
         self.kategori.setEnabled(enabled)
@@ -534,20 +723,25 @@ class kasir(QDialog):
         except Exception as e:
             QMessageBox.critical(self, "Error DB", f"Gagal memuat data menu:\n{e}")
 
+    def _isi_tabel_menu(self, table, filtered):
+        table.setRowCount(len(filtered))
+        for i, item in enumerate(filtered):
+            table.setItem(i, 0, QtWidgets.QTableWidgetItem(item[0]))
+            table.setItem(i, 1, QtWidgets.QTableWidgetItem(item[1]))
+            table.setItem(i, 2, QtWidgets.QTableWidgetItem(item[2]))
+            table.setItem(i, 3, item_rp(item[3]))                 # HARGA -> Rp 15.000
+            if table.columnCount() > 4:
+                stok = QtWidgets.QTableWidgetItem(f"{item[4]:.0f}")
+                stok.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                table.setItem(i, 4, stok)
+
     def filter_makanan(self, text):
         keyword = text.strip().lower()
         filtered = (
             [r for r in self._all_makanan if keyword in r[2].lower() or keyword in r[1].lower()]
             if keyword else self._all_makanan
         )
-        self.table_makanan.setRowCount(len(filtered))
-        for i, item in enumerate(filtered):
-            self.table_makanan.setItem(i, 0, QtWidgets.QTableWidgetItem(item[0]))
-            self.table_makanan.setItem(i, 1, QtWidgets.QTableWidgetItem(item[1]))
-            self.table_makanan.setItem(i, 2, QtWidgets.QTableWidgetItem(item[2]))
-            self.table_makanan.setItem(i, 3, QtWidgets.QTableWidgetItem(f"{item[3]:.0f}"))
-            if self.table_makanan.columnCount() > 4:
-                self.table_makanan.setItem(i, 4, QtWidgets.QTableWidgetItem(f"{item[4]:.0f}"))
+        self._isi_tabel_menu(self.table_makanan, filtered)
 
     def filter_minuman(self, text):
         keyword = text.strip().lower()
@@ -555,14 +749,7 @@ class kasir(QDialog):
             [r for r in self._all_minuman if keyword in r[2].lower() or keyword in r[1].lower()]
             if keyword else self._all_minuman
         )
-        self.table_minuman.setRowCount(len(filtered))
-        for i, item in enumerate(filtered):
-            self.table_minuman.setItem(i, 0, QtWidgets.QTableWidgetItem(item[0]))
-            self.table_minuman.setItem(i, 1, QtWidgets.QTableWidgetItem(item[1]))
-            self.table_minuman.setItem(i, 2, QtWidgets.QTableWidgetItem(item[2]))
-            self.table_minuman.setItem(i, 3, QtWidgets.QTableWidgetItem(f"{item[3]:.0f}"))
-            if self.table_minuman.columnCount() > 4:
-                self.table_minuman.setItem(i, 4, QtWidgets.QTableWidgetItem(f"{item[4]:.0f}"))
+        self._isi_tabel_menu(self.table_minuman, filtered)
 
     def getitem(self, table):
         row = table.currentRow()
@@ -571,7 +758,7 @@ class kasir(QDialog):
         id_item  = table.item(row, 0).text()
         kategori = table.item(row, 1).text()
         nama     = table.item(row, 2).text()
-        harga    = table.item(row, 3).text()
+        harga    = parse_angka(table.item(row, 3).text())
 
         # Ambil stock terkini dari sumber data (bukan dari tabel, supaya selalu akurat)
         sumber = self._all_makanan if 'makanan' in kategori.lower() else self._all_minuman
@@ -579,7 +766,7 @@ class kasir(QDialog):
 
         self.kategori.setText(kategori)
         self.pilihanmenu.setText(nama)
-        self.harga.setText(harga)
+        self.harga.setText(fmt_rp(harga))
         self.jumlah.setText("1")
         self.jumlah.setFocus()
         self.jumlah.selectAll()
@@ -595,10 +782,7 @@ class kasir(QDialog):
         for r in range(self.table_2.rowCount()):
             item = self.table_2.item(r, 1)
             if item and item.text() == menu:
-                try:
-                    return float(self.table_2.item(r, 3).text())
-                except (ValueError, AttributeError):
-                    return 0.0
+                return parse_angka(self.table_2.item(r, 3).text())
         return 0.0
 
     def simpandat(self):
@@ -617,15 +801,14 @@ class kasir(QDialog):
             QMessageBox.warning(self, "Perhatian", "Harga tidak boleh kosong!")
             return
 
-        try:
-            nilai_jumlah = float(jumlah)
-            nilai_harga  = float(harga)
-        except ValueError:
-            QMessageBox.warning(self, "Error", "Jumlah atau harga harus berupa angka!")
-            return
+        nilai_jumlah = parse_angka(jumlah)
+        nilai_harga  = parse_angka(harga)
 
         if nilai_jumlah <= 0:
             QMessageBox.warning(self, "Perhatian", "Jumlah harus lebih dari 0!")
+            return
+        if nilai_harga <= 0:
+            QMessageBox.warning(self, "Perhatian", "Harga tidak valid!")
             return
 
         # ── Validasi stock ──
@@ -641,11 +824,11 @@ class kasir(QDialog):
 
         for r in range(self.table_2.rowCount()):
             if self.table_2.item(r, 1) and self.table_2.item(r, 1).text() == menu:
-                jml_lama = float(self.table_2.item(r, 3).text())
+                jml_lama = parse_angka(self.table_2.item(r, 3).text())
                 jml_baru = jml_lama + nilai_jumlah
                 sub_baru = jml_baru * nilai_harga
-                self.table_2.setItem(r, 3, QtWidgets.QTableWidgetItem(f"{jml_baru:.0f}"))
-                self.table_2.setItem(r, 4, QtWidgets.QTableWidgetItem(f"{sub_baru:.0f}"))
+                self.table_2.setItem(r, 3, self._item_jumlah(jml_baru))
+                self.table_2.setItem(r, 4, item_rp(sub_baru))
                 self.jum()
                 self.tot()
                 self.clearform()
@@ -662,13 +845,19 @@ class kasir(QDialog):
 
         self.table_2.setItem(row, 0, item_kategori)
         self.table_2.setItem(row, 1, item_nama)
-        self.table_2.setItem(row, 2, QtWidgets.QTableWidgetItem(f"{nilai_harga:.0f}"))
-        self.table_2.setItem(row, 3, QtWidgets.QTableWidgetItem(f"{nilai_jumlah:.0f}"))
-        self.table_2.setItem(row, 4, QtWidgets.QTableWidgetItem(f"{hitung:.0f}"))
+        self.table_2.setItem(row, 2, item_rp(nilai_harga))        # HARGA
+        self.table_2.setItem(row, 3, self._item_jumlah(nilai_jumlah))
+        self.table_2.setItem(row, 4, item_rp(hitung))             # TOTAL
 
         self.jum()
         self.tot()
         self.clearform()
+
+    @staticmethod
+    def _item_jumlah(nilai):
+        it = QtWidgets.QTableWidgetItem(f"{nilai:.0f}")
+        it.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        return it
 
     def edit_keranjang(self):
         row = self.table_2.currentRow()
@@ -678,8 +867,8 @@ class kasir(QDialog):
 
         nama_item  = self.table_2.item(row, 1).text()
         id_item    = self.table_2.item(row, 1).data(Qt.UserRole)
-        harga_item = float(self.table_2.item(row, 2).text())
-        jml_lama   = int(float(self.table_2.item(row, 3).text()))
+        harga_item = parse_angka(self.table_2.item(row, 2).text())
+        jml_lama   = int(parse_angka(self.table_2.item(row, 3).text()))
 
         # Ambil stock terkini untuk item ini
         stock_maks = None
@@ -692,8 +881,8 @@ class kasir(QDialog):
         if dialog.exec_() == QDialog.Accepted:
             jumlah_baru   = dialog.get_value()
             subtotal_baru = jumlah_baru * harga_item
-            self.table_2.setItem(row, 3, QtWidgets.QTableWidgetItem(f"{jumlah_baru:.0f}"))
-            self.table_2.setItem(row, 4, QtWidgets.QTableWidgetItem(f"{subtotal_baru:.0f}"))
+            self.table_2.setItem(row, 3, self._item_jumlah(jumlah_baru))
+            self.table_2.setItem(row, 4, item_rp(subtotal_baru))
             self.jum()
             self.tot()
 
@@ -706,7 +895,7 @@ class kasir(QDialog):
             for row in range(self.table_2.rowCount()):
                 id_item = self.table_2.item(row, 1).data(Qt.UserRole)
                 nama    = self.table_2.item(row, 1).text()
-                jml     = float(self.table_2.item(row, 3).text())
+                jml     = parse_angka(self.table_2.item(row, 3).text())
                 if not id_item:
                     continue
                 curr.execute("SELECT stock FROM tbbarang WHERE idMenu=%s", (id_item,))
@@ -736,16 +925,16 @@ class kasir(QDialog):
             QMessageBox.warning(self, "Perhatian", "Total bayar atau uang pembayaran kosong!")
             return
 
-        try:
-            total   = float(total_text)
-            payment = float(uang_text)
-        except ValueError:
-            QMessageBox.warning(self, "Error", "Format angka tidak valid!")
+        total   = parse_angka(total_text)
+        payment = parse_angka(uang_text)
+
+        if total <= 0:
+            QMessageBox.warning(self, "Perhatian", "Total bayar tidak valid!")
             return
 
         if payment >= total:
             change = payment - total
-            self.kembalian.setText(f"{change:.0f}")
+            self.kembalian.setText(fmt_rp(change))
 
             # ── Cek ulang stock sebelum memproses ──
             ok, pesan = self._validasi_stock_sebelum_bayar()
@@ -759,15 +948,19 @@ class kasir(QDialog):
                 curr = conn.cursor()
 
                 # Simpan laporan beserta waktu transaksi
+                # (angka dikirim tanpa format supaya kolom DB tetap numerik)
                 curr.execute(
                     "INSERT INTO laporan (nama, jumlah, total, tanggal) VALUES (%s, %s, %s, %s)",
-                    (namapembeli, self.jumlah2.text(), total_text, waktu_transaksi)
+                    (namapembeli,
+                     f"{parse_angka(self.jumlah2.text()):.0f}",
+                     f"{total:.0f}",
+                     waktu_transaksi)
                 )
 
                 # Kurangi stock tiap item yang dibeli
                 for row in range(self.table_2.rowCount()):
                     id_item = self.table_2.item(row, 1).data(Qt.UserRole)
-                    jml     = float(self.table_2.item(row, 3).text())
+                    jml     = parse_angka(self.table_2.item(row, 3).text())
                     if id_item:
                         curr.execute(
                             "UPDATE tbbarang SET stock = stock - %s WHERE idMenu = %s",
@@ -800,7 +993,7 @@ class kasir(QDialog):
             kekurangan = total - payment
             self.kembalian.setText("Uang Kurang")
             QMessageBox.warning(self, "Pembayaran Gagal",
-                                f"Uang kurang Rp {kekurangan:,.0f}")
+                                f"Uang kurang {fmt_rp(kekurangan)}")
 
     def _buat_printer(self):
         printer = QPrinter(QPrinter.HighResolution)
@@ -852,7 +1045,6 @@ class kasir(QDialog):
             painter.drawText(pw - margin - text_w(text, font), y, text)
 
         def garis(y, inset=0.0):
-            """Garis solid. inset = proporsi lebar yang dipangkas di tiap sisi."""
             painter.setPen(QtGui.QPen(black, max(1, pt(0.8))))
             dx = int(avail * inset)
             painter.drawLine(margin + dx, y, pw - margin - dx, y)
@@ -868,11 +1060,8 @@ class kasir(QDialog):
         painter.setPen(black)
 
         # ── Data ──
-        total_val = self.hitung_total()
-        try:
-            bayar_val = float(self.uangpembayaran.text().strip())
-        except ValueError:
-            bayar_val = 0.0
+        total_val   = self.hitung_total()
+        bayar_val   = parse_angka(self.uangpembayaran.text())
         kembali_val = bayar_val - total_val
 
         waktu     = waktu_transaksi or datetime.now()
@@ -890,7 +1079,7 @@ class kasir(QDialog):
         draw_center("STRUK BELANJA", make_font(9, bold=True), y);            y += int(lh * 0.8)
         garis(y, 0.02);                                                      y += int(lh * 1.6)
 
-        # ── Tanggal & waktu (tebal, besar) ──
+        # ── Tanggal & waktu ──
         draw_center(waktu_str, make_font(13, bold=True), y);                 y += int(lh * 1.4)
 
         draw_left(f"Pemesan : {nama_pemesan}", f_norm, y);                   y += int(lh * 0.7)
@@ -902,25 +1091,22 @@ class kasir(QDialog):
         gap = pt(8)
         for row in range(self.table_2.rowCount()):
             nama = self.table_2.item(row, 1).text()
-            hrg  = int(float(self.table_2.item(row, 2).text()))
-            jml  = int(float(self.table_2.item(row, 3).text()))
-            sub  = int(float(self.table_2.item(row, 4).text()))
+            hrg  = parse_angka(self.table_2.item(row, 2).text())
+            jml  = int(parse_angka(self.table_2.item(row, 3).text()))
+            sub  = parse_angka(self.table_2.item(row, 4).text())
 
-            detail = f"Rp{hrg:,} x {jml}"
+            detail = f"{fmt_rp(hrg)} x {jml}"
             kiri   = f"{nama} {detail}"
-            kanan  = f"Rp{sub:,}"
+            kanan  = fmt_rp(sub)
 
             if text_w(kiri, f_norm) + gap + text_w(kanan, f_norm) <= avail:
-                # semua muat dalam satu baris
                 draw_left(kiri, f_norm, y)
                 draw_right(kanan, f_norm, y)
                 y += lh
             elif text_w(kiri, f_norm) <= avail:
-                # subtotal turun ke baris berikutnya (seperti di contoh)
                 draw_left(kiri, f_norm, y);  y += lh
                 draw_left(kanan, f_norm, y); y += lh
             else:
-                # nama terlalu panjang: nama sendiri, lalu detail + subtotal
                 draw_left(nama, f_norm, y);   y += lh
                 draw_left(detail, f_norm, y)
                 draw_right(kanan, f_norm, y); y += lh
@@ -930,7 +1116,7 @@ class kasir(QDialog):
         y += int(lh * 0.2)
         garis(y, 0.02);                                                      y += int(lh * 1.5)
 
-        # ── Total (titik dua sejajar, nilai rata kiri setelah titik dua) ──
+        # ── Total ──
         x_label = margin + pt(6)
         x_value = x_label + text_w("Total Belanja : ", f_bold)
         x_colon = x_value - text_w(": ", f_bold)
@@ -942,9 +1128,9 @@ class kasir(QDialog):
             y_now[0] += int(lh * 1.3)
 
         y_now = [y]
-        baris_total("Total Belanja", f"Rp{int(total_val):,}",   f_bold)
-        baris_total("Uang Bayar",    f"Rp{int(bayar_val):,}",   f_norm)
-        baris_total("Kembalian",     f"Rp{int(kembali_val):,}", f_bold)
+        baris_total("Total Belanja", fmt_rp(total_val),   f_bold)
+        baris_total("Uang Bayar",    fmt_rp(bayar_val),   f_norm)
+        baris_total("Kembalian",     fmt_rp(kembali_val), f_bold)
         y = y_now[0]
 
         y -= int(lh * 0.5)
@@ -955,10 +1141,10 @@ class kasir(QDialog):
         draw_center("Selamat Makan!", make_font(8), y)
 
         painter.end()
+
     def cetak_struk(self, waktu_transaksi=None):
         """Tampilkan dialog print. Keranjang TIDAK dikosongkan di sini —
-        pengosongan keranjang & refresh data menu ditangani terpusat di bayarr(),
-        supaya tetap terjadi baik struk jadi dicetak maupun dialog print dibatalkan."""
+        pengosongan keranjang & refresh data menu ditangani terpusat di bayarr()."""
         printer = self._buat_printer()
         dialog  = QPrintDialog(printer, self)
         if dialog.exec_() == QPrintDialog.Accepted:
@@ -969,20 +1155,17 @@ class kasir(QDialog):
         for row in range(self.table_2.rowCount()):
             item = self.table_2.item(row, 3)
             if item:
-                try:
-                    jum += float(item.text())
-                except ValueError:
-                    pass
+                jum += parse_angka(item.text())
         self.jumlah2.setText(f"{jum:.0f}")
 
     def hitung_total(self):
         total = 0
         for row in range(self.table_2.rowCount()):
             try:
-                h = float(self.table_2.item(row, 2).text())
-                j = float(self.table_2.item(row, 3).text())
+                h = parse_angka(self.table_2.item(row, 2).text())
+                j = parse_angka(self.table_2.item(row, 3).text())
                 total += h * j
-            except (ValueError, AttributeError):
+            except AttributeError:
                 pass
         return total
 
@@ -991,11 +1174,8 @@ class kasir(QDialog):
         for row in range(self.table_2.rowCount()):
             item = self.table_2.item(row, 4)
             if item:
-                try:
-                    total += float(item.text())
-                except ValueError:
-                    pass
-        self.totalbayar.setText(f"{total:.0f}")
+                total += parse_angka(item.text())
+        self.totalbayar.setText(fmt_rp(total))
 
     def hapuss(self):
         row = self.table_2.currentRow()
@@ -1021,8 +1201,9 @@ class kasir(QDialog):
             self._fallback.show()
         self.close()
 
+
 # ─────────────────────────────────────────────
-#  DAFTAR MENU  (dengan fitur search berdasarkan kode/ID Menu)
+#  DAFTAR MENU  (search berdasarkan kode/ID Menu atau nama)
 # ─────────────────────────────────────────────
 class DftrMenu(QDialog):
     def __init__(self):
@@ -1034,9 +1215,11 @@ class DftrMenu(QDialog):
         self.center()
         self._simpan_mode = 'baru'
         self._edit_mode = 'view'
-        self._all_data = []          # <-- cache semua data menu untuk difilter
+        self._all_data = []          # cache semua data menu untuk difilter
         self.tombol()
         self.tabelWidtg()
+        # Input harga ikut berformat ribuan saat diketik
+        pasang_format_uang(self.textHarga)
         self.loaddata()
         self.activeText(False)
 
@@ -1057,12 +1240,17 @@ class DftrMenu(QDialog):
         self.tableWidget.clicked.connect(self.getitem)
         self.hapus.clicked.connect(self.hapusData)
         self.simpan.clicked.connect(self.simpandata)
-        # Hubungkan kotak pencarian -> filter berdasarkan kode (idMenu) ATAU nama menu
         self.textSearchMenu.textChanged.connect(self.filter_data)
 
     def tabelWidtg(self):
         header = self.tableWidget.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.Stretch)
+        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        if self.tableWidget.columnCount() > 2:
+            header.setSectionResizeMode(2, QHeaderView.Stretch)
+        header.setMinimumSectionSize(70)
+        header.setStretchLastSection(False)
+        self.tableWidget.setWordWrap(False)
+        self.tableWidget.setTextElideMode(Qt.ElideNone)
 
     def loaddata(self):
         conn = get_connection()
@@ -1072,16 +1260,12 @@ class DftrMenu(QDialog):
         curr.close()
         conn.close()
 
-        # simpan semua data mentah untuk keperluan filter/search
         self._all_data = result
-
-        # tampilkan sesuai kata kunci yang sedang ada di kotak search (kalau ada)
         keyword = self.textSearchMenu.text() if hasattr(self, 'textSearchMenu') else ""
         self._render_table(self._filter_by_keyword(keyword))
 
     def _filter_by_keyword(self, keyword):
-        """Filter self._all_data berdasarkan idMenu (kode) ATAU namaMenu yang mengandung keyword.
-        row = (idMenu, kategori, namaMenu, harga, stock)"""
+        """row = (idMenu, kategori, namaMenu, harga, stock)"""
         keyword = (keyword or "").strip().lower()
         if not keyword:
             return self._all_data
@@ -1096,12 +1280,13 @@ class DftrMenu(QDialog):
             self.tableWidget.setItem(row, 0, QtWidgets.QTableWidgetItem(str(item[0])))
             self.tableWidget.setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[1])))
             self.tableWidget.setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[2])))
-            self.tableWidget.setItem(row, 3, QtWidgets.QTableWidgetItem(str(item[3])))
+            self.tableWidget.setItem(row, 3, item_rp(item[3]))     # HARGA -> Rp 15.000
             if self.tableWidget.columnCount() > 4:
-                self.tableWidget.setItem(row, 4, QtWidgets.QTableWidgetItem(str(item[4])))
+                stok = QtWidgets.QTableWidgetItem(str(item[4]))
+                stok.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                self.tableWidget.setItem(row, 4, stok)
 
     def filter_data(self, keyword):
-        """Dipanggil setiap kali teks di kotak search berubah."""
         self._render_table(self._filter_by_keyword(keyword))
 
     def clearform(self):
@@ -1131,7 +1316,8 @@ class DftrMenu(QDialog):
         self.textIdMenu.setText(id_item.text())
         self.cbKategori.setCurrentText(self.tableWidget.item(row, 1).text())
         self.textMenu.setText(self.tableWidget.item(row, 2).text())
-        self.textHarga.setText(self.tableWidget.item(row, 3).text())
+        # kolom sudah terformat -> kembalikan ke angka lalu biarkan formatter jalan
+        self.textHarga.setText(f"{parse_angka(self.tableWidget.item(row, 3).text()):.0f}")
         if hasattr(self, 'textStock') and self.tableWidget.item(row, 4):
             self.textStock.setText(self.tableWidget.item(row, 4).text())
 
@@ -1156,7 +1342,7 @@ class DftrMenu(QDialog):
             curr = conn.cursor()
             tipeMenu = self.cbKategori.currentText()
             namaMenu = self.textMenu.text()
-            hargaa   = self.textHarga.text()
+            hargaa   = int(parse_angka(self.textHarga.text()))   # simpan tanpa format
             try:
                 curr.execute(
                     "UPDATE tbbarang SET kategori=%s, namaMenu=%s, harga=%s, stock=%s WHERE idMenu=%s",
@@ -1202,7 +1388,6 @@ class DftrMenu(QDialog):
     def generate_next_id(self):
         """Ambil ID terakhir dari DB, lalu buat ID berikutnya.
         Mendukung format seperti 'M001', 'MK01', atau angka murni '001'."""
-        import re
         conn = get_connection()
         curr = conn.cursor()
         curr.execute("SELECT idMenu FROM tbbarang")
@@ -1261,7 +1446,7 @@ class DftrMenu(QDialog):
 
             tipeMenu = self.cbKategori.currentText()
             namaMenu = self.textMenu.text()
-            hargaa   = self.textHarga.text()
+            hargaa   = int(parse_angka(self.textHarga.text()))   # simpan tanpa format
             try:
                 conn = get_connection()
                 curr = conn.cursor()
@@ -1293,6 +1478,8 @@ class DftrMenu(QDialog):
         self.openkasir = Pilihan()
         self.openkasir.show()
         self.close()
+
+
 # ─────────────────────────────────────────────
 #  LAPORAN
 # ─────────────────────────────────────────────
@@ -1317,10 +1504,12 @@ class Laporan(QDialog):
         self.loaddata2()
         self.tabelWidtg()
         self.tot()
+        self.cb_filter.setCursor(Qt.PointingHandCursor)
+        self.cb_filter.view().setCursor(Qt.PointingHandCursor)
         self.cb_filter.currentTextChanged.connect(self._update_chart)
         self._update_chart()
-        # _setup_responsive_scaling(self, self.widget_2, 941, 671)
-        _setup_responsive_scaling(self, self.widget_2, 936, 668)   # sebelumnya 941, 671
+        # Dipanggil TERAKHIR supaya semua widget (termasuk tombol Cetak) ikut terdaftar
+        _setup_responsive_scaling(self, self.widget_2, 936, 668)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -1336,6 +1525,7 @@ class Laporan(QDialog):
         self.figure = Figure(figsize=(4, 4), dpi=100)
         self.figure.patch.set_facecolor(CHART_BG)
         self.canvas = FigureCanvas(self.figure)
+        self.canvas.setObjectName("chart_canvas")
         self.ax = self.figure.add_subplot(111)
         self._style_axes()
         layout = QVBoxLayout(self.frame_chart)
@@ -1394,9 +1584,8 @@ class Laporan(QDialog):
                 key = tanggal.strftime("Minggu %V, %Y") if ada else str(tanggal)[:10]
             else:
                 key = str(tanggal.year) if hasattr(tanggal, 'year') else str(tanggal)[:4]
-            groups[key] += float(total)
+            groups[key] += parse_angka(total)
 
-        # data sudah ORDER BY tanggal ASC, jadi urutan dict = urutan kronologis
         labels = list(groups.keys())
         values = list(groups.values())
 
@@ -1425,33 +1614,26 @@ class Laporan(QDialog):
 
         lbl_dari   = QLabel("Dari:", p)
         lbl_sampai = QLabel("Sampai:", p)
-        self.dateDari   = QDateEdit(p)
-        self.dateSampai = QDateEdit(p)
+        self.dateDari   = SelectDateEdit(p)
+        self.dateSampai = SelectDateEdit(p)
         self.btnFilter  = QPushButton("🔍 Filter", p)
         self.btnReset   = QPushButton("↩ Reset", p)
         self.btnCetak   = QPushButton("🖨  Cetak", p)
 
+        # ── WAJIB: tanpa objectName, widget TIDAK ikut responsive scaling ──
+        lbl_dari.setObjectName("lbl_dari")
+        lbl_sampai.setObjectName("lbl_sampai")
+        self.dateDari.setObjectName("dateDari")
+        self.dateSampai.setObjectName("dateSampai")
+        self.btnFilter.setObjectName("btnFilter")
+        self.btnReset.setObjectName("btnReset")
+        self.btnCetak.setObjectName("btnCetak")
+
         for d, tgl in ((self.dateDari, QDate.currentDate().addMonths(-1)),
                     (self.dateSampai, QDate.currentDate())):
-            d.setCalendarPopup(True)
             d.setDisplayFormat("dd-MM-yyyy")
             d.setDate(tgl)
-            d.setCursor(Qt.PointingHandCursor)
-            d.setStyleSheet("""
-                QDateEdit {
-                    background-color: #f0f6ff; border: 1.5px solid #bfdbfe;
-                    border-radius: 8px; padding: 4px 10px; color: #1e293b;
-                }
-                QDateEdit:focus { border-color: #2563eb; background-color: #ffffff; }
-                QDateEdit::drop-down { border: none; width: 22px; }
-                QDateEdit::down-arrow {
-                    image: none;
-                    border-left: 4px solid transparent;
-                    border-right: 4px solid transparent;
-                    border-top: 5px solid #2563eb;
-                    margin-right: 6px;
-                }
-            """)
+            d.setStyleSheet(STYLE_SELECT_DATE)
 
         style_primary = """
             QPushButton { background-color: #2563eb; color: #ffffff; border: none;
@@ -1468,14 +1650,12 @@ class Laporan(QDialog):
         self.btnReset.setStyleSheet(style_soft)
         self.btnCetak.setStyleSheet(style_soft.replace("font-size: 12px", "font-size: 13px"))
 
-        # Baris filter: y=76, tinggi 34, berakhir tepat di tepi kanan tabel (x=528)
         lbl_dari.setGeometry(28, 76, 34, 34)
         self.dateDari.setGeometry(64, 76, 120, 34)
         lbl_sampai.setGeometry(192, 76, 46, 34)
         self.dateSampai.setGeometry(240, 76, 120, 34)
         self.btnFilter.setGeometry(370, 76, 78, 34)
         self.btnReset.setGeometry(450, 76, 78, 34)
-        # Footer: Cetak di sebelah kiri tombol Kembali (x=778)
         self.btnCetak.setGeometry(636, 604, 130, 40)
 
         for w in (lbl_dari, lbl_sampai, self.dateDari, self.dateSampai,
@@ -1487,9 +1667,16 @@ class Laporan(QDialog):
         self.btnFilter.clicked.connect(self.terapkan_filter)
         self.btnReset.clicked.connect(self.reset_filter)
         self.btnCetak.clicked.connect(self.cetak_pendapatan)
+
     def tabelWidtg(self):
         header = self.tableWidget_2.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.Stretch)
+        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        if self.tableWidget_2.columnCount() > 0:
+            header.setSectionResizeMode(0, QHeaderView.Stretch)  # kolom Nama Pembeli
+        header.setMinimumSectionSize(70)
+        header.setStretchLastSection(False)
+        self.tableWidget_2.setWordWrap(False)
+        self.tableWidget_2.setTextElideMode(Qt.ElideNone)
 
     def tombol(self):
         self.keluar.clicked.connect(self.kembali)
@@ -1544,8 +1731,8 @@ class Laporan(QDialog):
             else:
                 periode = tanggal.strftime("%Y")
             groups[periode][0] += 1
-            groups[periode][1] += float(jumlah or 0)
-            groups[periode][2] += float(total or 0)
+            groups[periode][1] += parse_angka(jumlah)
+            groups[periode][2] += parse_angka(total)
         return sorted(groups.items())
 
     def cetak_pendapatan(self):
@@ -1574,11 +1761,7 @@ class Laporan(QDialog):
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setRenderHint(QPainter.TextAntialiasing)
 
-        # ── Semua ukuran dikonversi dari "poin" ke unit device sesuai DPI printer.
-        # Ini kunci perbaikannya: sebelumnya margin/line_height memakai angka
-        # piksel mentah (55, 30, dst) yang jauh lebih kecil daripada resolusi
-        # QPrinter.HighResolution (bisa >1000 DPI), sehingga baris jadi lebih
-        # pendek daripada tinggi font -> teks saling tumpang tindih ("gempet").
+        # Semua ukuran dikonversi dari "poin" ke unit device sesuai DPI printer.
         dpi = printer.resolution()
 
         def pt(points):
@@ -1652,7 +1835,7 @@ class Laporan(QDialog):
         def draw_data_row(periode, values):
             nonlocal y
             x = margin
-            row_data = (periode, values[0], f"{values[1]:,.0f}", f"Rp {values[2]:,.0f}")
+            row_data = (periode, values[0], fmt_ribuan(values[1]), fmt_rp(values[2]))
             for text, (_, width, alignment) in zip(row_data, columns):
                 draw_cell(text, x, width, alignment, normal_font, y, row_h)
                 x += width
@@ -1682,7 +1865,7 @@ class Laporan(QDialog):
         painter.drawText(
             margin, y, content_width, row_h,
             Qt.AlignRight | Qt.AlignVCenter,
-            f"TOTAL PENDAPATAN: Rp {total:,.0f}"
+            f"TOTAL PENDAPATAN: {fmt_rp(total)}"
         )
 
         painter.setFont(small_font)
@@ -1717,8 +1900,13 @@ class Laporan(QDialog):
         self.tableWidget_2.setRowCount(len(result))
         for row, item in enumerate(result):
             self.tableWidget_2.setItem(row, 0, QtWidgets.QTableWidgetItem(str(item[idx_nama])))
-            self.tableWidget_2.setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[idx_jumlah])))
-            self.tableWidget_2.setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[idx_total])))
+
+            jml = QtWidgets.QTableWidgetItem(f"{parse_angka(item[idx_jumlah]):.0f}")
+            jml.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            self.tableWidget_2.setItem(row, 1, jml)
+
+            self.tableWidget_2.setItem(row, 2, item_rp(item[idx_total]))   # TOTAL -> Rp ...
+
             waktu = item[idx_tanggal] if idx_tanggal is not None else None
             waktu_str = (
                 waktu.strftime("%d-%m-%Y %H:%M")
@@ -1738,9 +1926,9 @@ class Laporan(QDialog):
         curr.close()
         conn.close()
         for row in rows:
-            tota += float(row[0])
+            tota += parse_angka(row[0])
         self.Total.setStyleSheet("font-size: 18px")
-        self.Total.setText("RP.{:.0f}".format(tota))
+        self.Total.setText(fmt_rp(tota))
 
     def kembali(self):
         self.openkasir = Pilihan()
