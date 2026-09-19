@@ -165,36 +165,90 @@ def get_connection():
         use_pure=True
     )
 
-
 # ─────────────────────────────────────────────
-#  SELECT DATE EDIT  (tanggal berperilaku seperti tombol select)
+#  SELECT DATE EDIT  (VERSI PERBAIKAN)
+#  Ganti seluruh class SelectDateEdit yang lama di kasir.py dengan ini.
 # ─────────────────────────────────────────────
 class SelectDateEdit(QDateEdit):
     """QDateEdit yang berperilaku seperti tombol select/combobox:
-    klik di area mana pun langsung membuka kalender, teks tidak bisa diketik manual."""
+    klik di area mana pun langsung membuka kalender, teks tidak bisa diketik manual.
+
+    CATATAN PERBAIKAN (kenapa versi lama tidak berfungsi):
+    Versi sebelumnya menebak posisi tombol panah dropdown lewat
+    style().subControlRect(CC_ComboBox / CC_SpinBox, ...) lalu mengirim
+    "klik palsu" ke posisi tersebut. Pendekatan ini rapuh:
+      1. Karena calendarPopup=True, tombol spin bawaan (SC_SpinBoxUp)
+         disembunyikan Qt, jadi query CC_SpinBox selalu mengembalikan
+         rect KOSONG -> fallback-nya tidak pernah berguna.
+      2. QStyleOptionComboBox yang dibuat manual (initFrom + set field
+         seadanya) sering tidak cocok dengan geometri yang benar-benar
+         dipakai style/stylesheet aktif, terutama dengan QSS custom
+         seperti punya kita -> rect yang didapat salah/ tidak valid.
+    Akibatnya kedua rect tidak valid, klik jatuh ke super().mousePressEvent()
+    dengan event asli, dan karena field readOnly, tidak terjadi apa-apa
+    -> kalender tidak pernah muncul.
+
+    SOLUSI: kelola sendiri popup kalendernya, tidak bergantung sama sekali
+    pada hit-testing internal Qt. Setiap klik kiri langsung membuka
+    QCalendarWidget kita sendiri di dalam frame Qt.Popup, diposisikan
+    tepat di bawah field. Ini selalu berfungsi apa pun style/tema aktif.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setCalendarPopup(True)
+        self.setCalendarPopup(True)   # tetap True supaya QSS ::drop-down / ::down-arrow tampil
         self.setReadOnly(True)
-        self.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.setCursor(Qt.PointingHandCursor)
         self.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         self.setFocusPolicy(Qt.StrongFocus)
 
+        # ── Popup kalender kita sendiri (tidak pakai mekanisme dropdown bawaan) ──
+        self._popup = QtWidgets.QFrame(self, Qt.Popup)
+        self._popup.setObjectName("calendarPopupFrame")
+        self._popup.setStyleSheet(
+            "QFrame#calendarPopupFrame { background-color: #ffffff; "
+            "border: 1px solid #bfdbfe; border-radius: 10px; }"
+        )
+        popup_layout = QVBoxLayout(self._popup)
+        popup_layout.setContentsMargins(6, 6, 6, 6)
+
+        self._calendar = QtWidgets.QCalendarWidget(self._popup)
+        self._calendar.setGridVisible(True)
+        self._calendar.setVerticalHeaderFormat(QtWidgets.QCalendarWidget.NoVerticalHeader)
+        self._calendar.clicked.connect(self._pilih_tanggal)
+        popup_layout.addWidget(self._calendar)
+
+    def _pilih_tanggal(self, date):
+        self.setDate(date)
+        self._popup.hide()
+        self.dateChanged.emit(date)  # jaga-jaga kalau ada listener lain yang dengar sinyal ini
+
     def mousePressEvent(self, event):
-        if self.calendarPopup() and event.button() == Qt.LeftButton:
-            opt = QtWidgets.QStyleOptionSpinBox()
-            self.initStyleOption(opt)
-            rect = self.style().subControlRect(
-                QtWidgets.QStyle.CC_SpinBox, opt,
-                QtWidgets.QStyle.SC_SpinBoxUp, self)
-            fake = QtGui.QMouseEvent(event.type(), rect.center(),
-                                     Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
-            super().mousePressEvent(fake)
+        if event.button() == Qt.LeftButton:
+            self.setFocus()
+            self._toggle_popup()
+            event.accept()
             return
         super().mousePressEvent(event)
 
+    def keyPressEvent(self, event):
+        # Supaya bisa dibuka juga lewat keyboard (Enter/Space) saat sedang focus
+        if event.key() in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Space):
+            self._toggle_popup()
+            return
+        super().keyPressEvent(event)
+
+    def _toggle_popup(self):
+        if self._popup.isVisible():
+            self._popup.hide()
+            return
+        self._calendar.setSelectedDate(self.date())
+        pos = self.mapToGlobal(self.rect().bottomLeft())
+        self._popup.move(pos)
+        self._popup.resize(max(self.width(), 260), 260)
+        self._popup.show()
+        self._popup.raise_()
+        self._popup.activateWindow()
 
 STYLE_SELECT_DATE = """
 QDateEdit {
@@ -566,6 +620,12 @@ class Pilihan(QDialog):
 class kasir(QDialog):
     def __init__(self, parent_pilihan=None):
         super().__init__()
+        self.setWindowFlags(
+            Qt.Window |
+            Qt.WindowMinimizeButtonHint |
+            Qt.WindowMaximizeButtonHint |
+            Qt.WindowCloseButtonHint
+        )
         uic.loadUi("CheckOut.ui", self)
         available = QDesktopWidget().availableGeometry()
         self.resize(min(1734, available.width()), min(859, available.height()))
@@ -576,10 +636,10 @@ class kasir(QDialog):
         # ── Judul "Daftar Menu" / "Keranjang Belanja" sedikit lebih besar,
         # dan tetap menyesuaikan (mengecil/membesar) saat window di-resize.
         self._custom_label_fonts = {
-            self.label_7:      (26, '#1d4ed8'),   # 📋 Daftar Menu
-            self.label_6:      (18, '#1d4ed8'),   # 🛍 Keranjang Belanja
-            self.lbl_makanan:  (18, '#0891b2'),   # 🍽 Makanan
-            self.lbl_minuman:  (18, '#0891b2'),   # 🥤 Minuman
+            self.label_7:      (16, '#1d4ed8'),   # 📋 Daftar Menu
+            self.label_6:      (16, '#1d4ed8'),   # 🛍 Keranjang Belanja
+            self.lbl_makanan:  (14, '#eb2525'),   # 🍽 Makanan
+            self.lbl_minuman:  (14, '#0891b2'),   # 🥤 Minuman
         }
         _apply_custom_label_fonts(self)
 
@@ -1208,6 +1268,12 @@ class kasir(QDialog):
 class DftrMenu(QDialog):
     def __init__(self):
         super().__init__()
+        self.setWindowFlags(
+            Qt.Window |
+            Qt.WindowMinimizeButtonHint |
+            Qt.WindowMaximizeButtonHint |
+            Qt.WindowCloseButtonHint
+        )
         uic.loadUi("DaftarMenu.ui", self)
         available = QDesktopWidget().availableGeometry()
         self.resize(min(980, available.width()), min(660, available.height()))
